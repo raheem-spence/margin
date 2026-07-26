@@ -267,8 +267,8 @@ aside{
     justify-content: space-between;
     padding-left: 24px;
     padding-right: 10px;
-    padding-bottom: 12px;
-    padding-top: 12px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     position: sticky;
     top: 0;
     border-bottom: 1px solid #00000012;
@@ -425,7 +425,7 @@ aside{
 
 .name {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .greeting {
@@ -434,4 +434,71 @@ aside{
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.025rem;
+}
+
+.vertical-bar {
+    color: #00000012;
+    font-weight: 100;
+}
+
+.current-site-location {
+    color: #6b6b6b;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dark-light-mode-btn {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    border-radius: 50%;
+    height: 28px;
+    width: 28px;
+}
+
+.dark-light-mode-btn:hover {
+    background-color: rgb(232, 230, 230);
+}
+
+#user-icon-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    box-sizing: border-box;
+    padding: 5px;
+    cursor: pointer;
+}
+
+#user-icon-btn:hover {
+    background-color: rgb(232, 230, 230);
+    border: 1px solid #00000012;
+    box-sizing: border-box;
+}
+
+.user-menu-container {
+    position: relative;
+}
+
+/* Hidden state */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 50;
+    top: 50;
+    background-color: #ffffff;
+    border-radius: 5px;
+    width: 100px;
+    height: 100px;
+    z-index: 1000;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.white-bg {
+    background-color: #ffffff;
 }

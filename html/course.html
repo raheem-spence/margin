@@ -32,17 +32,27 @@
     </aside>
     <main>
         <header class="course-header">
-            <div class="search-bar-container">
-                <search class="search-bar">
-                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-                    <input type="search" placeholder="Search notes, classes...">
-                </search>
-            </div>
+            <p class="current-site-location">Dashboard</p>
             <div class="user-div">
-                <div class="user-initials-avatar">
-                    <span class="initials">RS</span>
+                <button class="dark-light-mode-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon-icon lucide-moon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+                </button>
+                <p class="vertical-bar">|</p>
+                <div class="user-menu-container">
+                    <button id="user-icon-btn">
+                        <div class="user-initials-avatar">
+                            <span class="initials">RS</span>
+                        </div>
+                        <span class="name">Raheem S.</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
                 </div>
-                <span class="name">Raheem S.</span>
+                <!-- Dropdown Modal Content-->
+                <div id="dropdown-modal" class="dropdown-content">
+                    <a href="#profile">Profile</a>
+                    <a href="#settings">Account Settings</a>
+                    <a href="#logout">Log Out</a>
+                </div>
             </div>
         </header>
         <div id="dashboard-container"></div>

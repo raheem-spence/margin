@@ -25,6 +25,21 @@ const userDiv = document.getElementById("user-info");
 
 const dashboardDiv = document.getElementById("dashboard-container");
 
+const userBtn = document.getElementById('user-icon-btn');
+const dropdownModal = document.getElementById('dropdown-modal');
+
+userBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdownModal.classList.toggle('show');
+    userBtn.classList.toggle('white-bg');
+});
+
+window.addEventListener('click', () => {
+    if (dropdownModal.classList.contains('show')) {
+        dropdownModal.classList.remove('show')
+    }
+});
+
 
 
 // ---------- App State ---------- 
@@ -397,8 +412,8 @@ function renderDashboard() {
     greeting.classList.add('greeting');
 
     dashboardHeading.textContent = "DASHBOARD";
-    greeting.textContent = "Welcome back, Raheem.";
-    welcomeMsg.textContent = "Start organizing your notes by creating or joining a class.";
+    greeting.textContent = "Welcome to Margin, Raheem.";
+    welcomeMsg.textContent = "Your classes, notes, and classmates all in one place";
     welcomeDiv.classList.add('welcome-div');
     
     
