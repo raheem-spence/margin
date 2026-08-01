@@ -24,28 +24,96 @@ const newTitleInput = document.getElementById("note-title-input");
 const userDiv = document.getElementById("user-info");
 
 const dashboardDiv = document.getElementById("dashboard-container");
+const dashboardHeader = document.createElement('div');
+const dashboardTitleContainer = document.createElement('div');
+const dashboardTitle = document.createElement('h1');
+const dashboardMessage = document.createElement('p');
+
 
 const userBtn = document.getElementById('user-icon-btn');
 const dropdownModal = document.getElementById('dropdown-modal');
+const arrow = document.getElementById('arrow');
 
 userBtn.addEventListener('click', e => {
     e.stopPropagation();
     dropdownModal.classList.toggle('show');
-    userBtn.classList.toggle('white-bg');
+
+    if (userBtn.classList.contains('white-bg')) {
+        userBtn.classList.remove('white-bg');
+        userBtn.classList.remove('shadow');
+        arrow.classList.remove('rotate');
+    } else {
+        userBtn.classList.add('white-bg');
+        userBtn.classList.add('shadow');
+        arrow.classList.add('rotate');
+    }
 });
 
 window.addEventListener('click', () => {
     if (dropdownModal.classList.contains('show')) {
         dropdownModal.classList.remove('show')
     }
+    
+    if (userBtn.classList.contains('white-bg')) {
+        userBtn.classList.remove('white-bg');
+        userBtn.classList.remove('shadow');
+        arrow.classList.remove('rotate');
+    }
 });
 
 
+function renderDashboard() {
+
+    const btnContainer = document.createElement('div');
+
+    const joinClsBtn = document.createElement('button');
+    const createClsBtn = document.createElement('button');
+
+    const coursesSection = document.createElement('section');
+    const coursesHeader = document.createElement('div');
+    const coursesHeading = document.createElement('h2');
+    const allCoursesBtn = document.createElement('button');
+    const coursesGrid = document.createElement('div');
+
+    joinClsBtn.textContent = "# Join class";
+    createClsBtn.textContent = "+  Create class";
+    coursesHeading.textContent = "Your courses";
+
+    allCoursesBtn.textContent = "View all →"
+
+    btnContainer.append(joinClsBtn, createClsBtn);
+
+    dashboardTitle.classList.add('dashboard-title');
+    dashboardMessage.classList.add('dashboard-msg');
+    dashboardHeader.classList.add('dashboard-header');
+    joinClsBtn.classList.add('join-btn');
+    createClsBtn.classList.add('create-cls-btn');
+    btnContainer.classList.add('btn-container');
+    dashboardTitleContainer.classList.add('dashboard-title-container');
+
+    coursesHeader.classList.add('courses-header');
+    coursesHeading.classList.add('courses-heading');
+    allCoursesBtn.classList.add('all-courses-btn');
+    coursesGrid.classList.add('courses-grid');
+
+    dashboardTitle.textContent = "Welcome back, Izuku.";
+    dashboardMessage.textContent = "Here's whats happening across your classes.";
+
+    coursesHeader.append(coursesHeading, allCoursesBtn);
+    coursesSection.appendChild(coursesHeader, coursesGrid)
+
+    dashboardTitleContainer.append(dashboardTitle, dashboardMessage);
+
+    dashboardHeader.append(dashboardTitleContainer, btnContainer);
+
+    dashboardDiv.append(dashboardHeader, coursesSection);
+    renderDashboardCourses(coursesGrid, coursesSection, courses);
+}
+ 
 
 // ---------- App State ---------- 
 
 let currentlyEditingNoteId = null;
-renderDashboard()
 
 
 
@@ -53,7 +121,10 @@ renderDashboard()
 
 // Show user courses
 const courses = await fetchCourses();
-renderCourses(courses);
+console.log(courses);
+renderSideBarCourses(courses);
+renderDashboard();
+
 
 // Show user notes
 await refreshNotes(courseId);
@@ -62,10 +133,36 @@ await refreshNotes(courseId);
 await renderUser();
 
 
-// ---------- Sidebar ---------- 
+// ---------- Dashboard ----------
+async function renderDashboardCourses(coursesGrid, coursesSection, courses) {
 
-// Render sidebar courses
-function renderCourses(courses) {
+    coursesGrid.replaceChildren();
+
+    if (courses.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.textContent = "You have no courses yet...";
+    } else {
+
+        for (const course of courses) {
+        const courseCard = document.createElement('article');
+        const courseName = document.createElement('h3');
+        const courseMetaData = document.createElement('div');
+
+        courseCard.classList.add('course-card');
+        courseName.classList.add('course-name');
+
+        courseName.textContent = course.name;
+
+        courseCard.appendChild(courseName);
+        coursesGrid.appendChild(courseCard);
+        }
+
+        coursesSection.appendChild(coursesGrid);
+    }
+}
+
+// ---------- Sidebar ---------- 
+function renderSideBarCourses(courses) {
     // clear ul container
     ulContainer.replaceChildren();
 
@@ -104,8 +201,10 @@ function renderCourses(courses) {
         const sideBarCourses = document.querySelectorAll('li.course');
         highlightActiveCourse(sideBarCourses);
 
-        const currentCourseName = document.querySelector('.course.active');
-        updateHeading(currentCourseName);
+
+
+        // const currentCourseName = document.querySelector('.course.active');
+        // updateHeading(currentCourseName);
     }
 }
 
@@ -332,9 +431,9 @@ function highlightActiveCourse(sideBarCourses) {
     });
 }
 
-function updateHeading(currentCourse) {
-    courseTitle.textContent = currentCourse.textContent + " Notes";
-}
+// function updateHeading(currentCourse) {
+//     courseTitle.textContent = currentCourse.textContent + " Notes";
+// }
 
 async function refreshNotes(courseId) {
     const notes = await loadNotes(courseId);
@@ -387,40 +486,3 @@ async function handleUpdate(title, content, courseId, noteId) {
 }
 
 
-
-async function initializeApp() {
-
-}
-
-function renderDashboard() {
-    const welcomeDiv = document.createElement('div');
-    const welcomeDivContent = document.createElement('div');
-    const dashboardHeading = document.createElement('p');
-    const greeting = document.createElement('h1');
-    const welcomeMsg = document.createElement('p');
-
-    const dateDiv = document.createElement('div');
-    const date = document.createElement('p');
-    const today = new Date();
-    const options = {weekday: 'long', month: 'long', day: 'numeric'};
-
-    welcomeDivContent.classList.add("welcome-div-content");
-    welcomeMsg.classList.add("welcome-msg");
-    date.classList.add('welcome-date');
-    date.textContent = today.toLocaleDateString('en-US', options);
-    dashboardHeading.classList.add("dashboard-heading");
-    greeting.classList.add('greeting');
-
-    dashboardHeading.textContent = "DASHBOARD";
-    greeting.textContent = "Welcome to Margin, Raheem.";
-    welcomeMsg.textContent = "Your classes, notes, and classmates all in one place";
-    welcomeDiv.classList.add('welcome-div');
-    
-    
-    dateDiv.appendChild(date);
-    welcomeDivContent.append(dashboardHeading, greeting, welcomeMsg);
-    welcomeDiv.append(welcomeDivContent, dateDiv);
-    dashboardDiv.append(welcomeDiv);
-
-
-}

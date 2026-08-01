@@ -39,37 +39,24 @@
                 </button>
                 <p class="vertical-bar">|</p>
                 <div class="user-menu-container">
-                    <button id="user-icon-btn">
+                    <button id="user-icon-btn" class="user-icon-btn">
                         <div class="user-initials-avatar">
                             <span class="initials">RS</span>
                         </div>
                         <span class="name">Raheem S.</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg id="arrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                 </div>
                 <!-- Dropdown Modal Content-->
                 <div id="dropdown-modal" class="dropdown-content">
-                    <a href="#profile">Profile</a>
-                    <a href="#settings">Account Settings</a>
-                    <a href="#logout">Log Out</a>
+                    <button id="logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out-icon lucide-log-out"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+                        <span class="logout">Log out</span>
+                    </button>
                 </div>
             </div>
         </header>
         <div id="dashboard-container"></div>
-        <!-- <div class="new-note-container"> 
-            <h3>Create a new note</h3>
-            <div class="title-container">
-                <input type="text" name="" id="note-title-input" placeholder="Note title...">
-            </div>
-            <div class="textarea-container">
-                <textarea name="" id="note-content-input" cols="30" rows="10" 
-                placeholder="Start writing your note here..."></textarea>
-                <button id="create-note-btn">Create Note</button>
-            </div>
-        </div>
-        <h3 class="notes-container-heading">Notes</h3>
-        <div id="notes-container" class="notes-container">
-        </div> -->
     </main>
 </body>
 </html>

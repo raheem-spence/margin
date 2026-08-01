@@ -50,9 +50,9 @@ POST http://localhost:8080/course/create
 Content-Type: application/json
 
 {
-  "courseName": "Chemistry",
+  "courseName": "Physics",
   "school": "Bates College",
-  "joinCode": "321"
+  "joinCode": "456"
 }
 
 ### Join class for logged in user
@@ -60,6 +60,9 @@ POST http://localhost:8080/course/join
 Content-Type: application/json
 
 {
-  "courseName": "Chemistry",
-  "joinCode": "321"
+  "courseName": "Physics",
+  "joinCode": "456"
 }
+
+### Get all courses for a user
+GET http://localhost:8080/course/my-courses
