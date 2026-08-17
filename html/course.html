@@ -14,13 +14,17 @@
             <ul id="dashboard-item">
                 <li><a href="/html/course.html">Dashboard</a></li>
             </ul>
-            <p class="sidebar-label">My courses</p>
-            <ul id="course-list">
+            <button id="sidebar-label" class="sidebar-label">My courses<span><svg id="sidebar-arrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <div id="dropdown-menu" class="dropdown-menu">
+                <ul id="course-list">
 
-            </ul>
+                </ul>
+            </div>
+            <div id="course-border"></div>
+            <button id="notes" class="sidebar-label notes">Notes</button>
         </nav>
 
-        <button class="join-course-btn"><span class="plus-sign">+</span>Add Course</button>
+        <!-- <button class="join-course-btn"><span class="plus-sign">+</span>Add Course</button> -->
 
         <div class="sidebar-user">
             <div class="user-icon">
@@ -41,10 +45,10 @@
                 <div class="user-menu-container">
                     <button id="user-icon-btn" class="user-icon-btn">
                         <div class="user-initials-avatar">
-                            <span class="initials">RS</span>
+                            <span id="initials" class="initials"></span>
                         </div>
-                        <span class="name">Raheem S.</span>
-                        <svg id="arrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                        <span id="user-icon-name" class="name"></span>
+                        <svg id="profile-arrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                 </div>
                 <!-- Dropdown Modal Content-->

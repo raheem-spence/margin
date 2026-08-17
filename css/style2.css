@@ -10,7 +10,7 @@
     --btn-clr: #444af7;
     --btn-clr-hover: #2c32c4;
     --secondary-text-clr: #b0b3c1;
-    --sidebar-clr: #F6F7FD;
+    --sidebar-clr: #fff;
     --border-clr: #E5E7EB;
     --accent-bg: #f5f5fa;
     --accent-border: #D8DCFF;
@@ -164,11 +164,36 @@ aside{
 
 .sidebar-label {
     color: black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    text-align: left;
+    font-family: inherit;
+    width: 100%;
     font-size: 0.85rem;
     font-weight: 500;
-    margin-left: 0.625rem;
     margin-bottom: 0.25rem;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-indent: 5px;
 }
+
+.notes {
+    margin-top: 0.25rem;
+}
+
+.sidebar-label:hover {
+    background-color: #7c3aed14;
+    border-radius: .5em;
+}
+
+.course-list {
+    display: none;
+}
+
 
 .join-course-btn {
     display: flex;
@@ -218,6 +243,16 @@ aside{
 
 .course-name {
     font-size: 0.8rem;
+}
+
+.dropdown-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+}
+
+.dropdown-menu.open {
+    max-height: 200px;
 }
 
 
@@ -470,9 +505,19 @@ aside{
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
-#arrow {
+#course-border {
+    height: 1px;
+    background-color: var(--border);
+}
+
+#profile-arrow {
     transition: 0.15s ease-in-out;
     transform-origin: center;
+}
+
+#sidebar-arrow {
+    transition: 0.15s ease-in-out;
+    transform-origin: center
 }
 
 .rotate {
@@ -545,6 +590,7 @@ aside{
 #dashboard-container {
     padding: 40px 32px;
 }
+
 
 .dashboard-header {
     display: flex;

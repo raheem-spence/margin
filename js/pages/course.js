@@ -29,10 +29,18 @@ const dashboardTitleContainer = document.createElement('div');
 const dashboardTitle = document.createElement('h1');
 const dashboardMessage = document.createElement('p');
 
+const dropdownMenu = document.getElementById('dropdown-menu');
+const sidebarDropdownBtn = document.getElementById('sidebar-label');
+const sidebarArrow = document.getElementById('sidebar-arrow');
+
 
 const userBtn = document.getElementById('user-icon-btn');
 const dropdownModal = document.getElementById('dropdown-modal');
-const arrow = document.getElementById('arrow');
+const profileArrow = document.getElementById('profile-arrow');
+
+const userIconName = document.getElementById('user-icon-name');
+const userInitials = document.getElementById('initials');
+
 
 userBtn.addEventListener('click', e => {
     e.stopPropagation();
@@ -41,11 +49,11 @@ userBtn.addEventListener('click', e => {
     if (userBtn.classList.contains('white-bg')) {
         userBtn.classList.remove('white-bg');
         userBtn.classList.remove('shadow');
-        arrow.classList.remove('rotate');
+        profileArrow.classList.remove('rotate');
     } else {
         userBtn.classList.add('white-bg');
         userBtn.classList.add('shadow');
-        arrow.classList.add('rotate');
+        profileArrow.classList.add('rotate');
     }
 });
 
@@ -57,9 +65,15 @@ window.addEventListener('click', () => {
     if (userBtn.classList.contains('white-bg')) {
         userBtn.classList.remove('white-bg');
         userBtn.classList.remove('shadow');
-        arrow.classList.remove('rotate');
+        profileArrow.classList.remove('rotate');
     }
 });
+
+sidebarDropdownBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('open');
+    sidebarArrow.classList.toggle('rotate');
+})
 
 
 function renderDashboard() {
@@ -96,7 +110,6 @@ function renderDashboard() {
     allCoursesBtn.classList.add('all-courses-btn');
     coursesGrid.classList.add('courses-grid');
 
-    dashboardTitle.textContent = "Welcome back, Izuku.";
     dashboardMessage.textContent = "Here's whats happening across your classes.";
 
     coursesHeader.append(coursesHeading, allCoursesBtn);
@@ -126,8 +139,8 @@ renderSideBarCourses(courses);
 renderDashboard();
 
 
-// Show user notes
-await refreshNotes(courseId);
+// // Show user notes
+// await refreshNotes(courseId);
 
 // Show user info
 await renderUser();
@@ -198,8 +211,12 @@ function renderSideBarCourses(courses) {
             ulContainer.appendChild(courseLi);
         }
 
+        dropdownMenu.appendChild(ulContainer);
+
         const sideBarCourses = document.querySelectorAll('li.course');
         highlightActiveCourse(sideBarCourses);
+
+
 
 
 
@@ -212,6 +229,7 @@ function renderSideBarCourses(courses) {
 async function renderUser() {
 
     const user = await fetchCurrentUser();
+    console.log(user);
 
     const usernamePara = document.createElement('p');
     const userEmailPara = document.createElement('p');
@@ -224,6 +242,12 @@ async function renderUser() {
     
     userDiv.appendChild(usernamePara);
     userDiv.appendChild(userEmailPara);
+
+    userIconName.textContent = user.firstName + " " + user.lastName[0] + ".";
+    userInitials.textContent = user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase();
+
+    dashboardTitle.textContent = "Welcome back, " + user.firstName + ".";
+ 
 }
 
 
