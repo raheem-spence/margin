@@ -13,6 +13,7 @@ public class NoteResponse {
     private String title;
     private String content;
     private Instant createdAt;
+    private Instant updatedAt;
     private Long ownerId;
     private String ownerFirstName;
     private String ownerLastName;

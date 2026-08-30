@@ -9,6 +9,8 @@ import com.raheemspence.repository.CourseMembershipRepository;
 import com.raheemspence.repository.CourseRepository;
 import com.raheemspence.repository.NoteRepository;
 import com.raheemspence.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +35,42 @@ public class NoteService {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.courseMembershipRepository = courseMembershipRepository;
+    }
+
+    public List<NoteResponse> getRecentNotes(Long userId) {
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        List<Note> recentNotes = noteRepository.findAccessibleNotesByUserId(userId, pageable);
+
+        List<NoteResponse> recentNotesResponse = new ArrayList<>();
+
+        for (Note note: recentNotes) {
+            Long id = note.getId();
+            String title = note.getTitle();
+            String content = note.getContent();
+            Instant createdAt = note.getCreatedAt();
+            Instant updatedAt = note.getUpdatedAt();
+            Long ownerId = note.getOwner().getId();
+            String firstName = note.getOwner().getFirstName();
+            String lastName = note.getOwner().getLastName();
+
+            NoteResponse noteResponse = new NoteResponse();
+
+            noteResponse.setId(id);
+            noteResponse.setTitle(title);
+            noteResponse.setContent(content);
+            noteResponse.setCreatedAt(createdAt);
+            noteResponse.setUpdatedAt(updatedAt);
+            noteResponse.setOwnerId(ownerId);
+            noteResponse.setOwnerFirstName(firstName);
+            noteResponse.setOwnerLastName(lastName);
+
+            recentNotesResponse.add(noteResponse);
+
+        }
+
+        return recentNotesResponse;
     }
 
     public List<NoteResponse> getNotesByCourseId(Long userId, Long courseId) {

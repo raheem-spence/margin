@@ -1,3 +1,30 @@
+export async function loadDashboardNotes() {
+    try {
+        // 1. send the network request
+        const response = await fetch(`http://127.0.0.1:8080/courses/notes`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        // 2. check if response is ok
+        if (!response.ok) {
+            throw new Error(`Http error! Status: ${response.status}`);
+        }
+
+        //3. parse the stream data into JSON object
+        const recentNotes = await response.json();
+        return recentNotes;
+    } catch (error) {
+        console.error('Fetch failed: ', error);
+    }
+}
+
+
+
+
+
+
+
 export async function loadNotes(courseId) {
     try {
         // 1. send the network request
@@ -65,4 +92,8 @@ export async function updateNote(courseId, noteData, noteId) {
     } catch (error) {
         console.log('Error:', error)
     }
+}
+
+export async function recentNotes() {
+    
 }

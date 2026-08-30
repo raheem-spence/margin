@@ -17,9 +17,12 @@ POST http://localhost:8080/auth/login
 Content-Type: application/json
 
 {
-  "email": "test2@email.com",
+  "email": "test@email.com",
   "password": "spence"
 }
+
+### Get all notes for a user
+GET http://localhost:8080/courses/notes
 
 ### Get all course specific note for logged in user
 GET http://localhost:8080/courses/1/notes
@@ -60,8 +63,8 @@ POST http://localhost:8080/course/join
 Content-Type: application/json
 
 {
-  "courseName": "Physics",
-  "joinCode": "456"
+  "courseName": "Spanish",
+  "joinCode": "132"
 }
 
 ### Get all courses for a user
