@@ -29,7 +29,7 @@ if (loginBtn) {
         });
 
         if (response.ok) {
-            window.location.href = "course.html";
+            window.location.href = "dashboard.html";
     
         } else {
             errorDiv.classList.remove('hidden');
@@ -68,7 +68,7 @@ if (loginBtn) {
 
         
             if (response.ok) {
-                window.location.href = "course.html";
+                window.location.href = "dashboard.html";
             } else {
                 data = await response.json()
                 errorDiv.textContent = data.message;

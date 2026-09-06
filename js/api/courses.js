@@ -19,3 +19,22 @@ export async function fetchCourses() {
         console.log('Fetch failed:', error);
     }
 }
+
+export async function fetchCourseDetails(courseId) {
+    try {
+        const response = await fetch(`http://127.0.0.1:8080/course/${courseId}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`)
+        }
+
+        const courseDetails = await response.json();
+        return courseDetails;
+
+    } catch (error) {
+        console.log('Fetch failed:', error);
+    }
+}

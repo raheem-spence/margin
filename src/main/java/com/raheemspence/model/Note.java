@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -53,8 +55,10 @@ public class Note {
     private String content;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    @CreationTimestamp
+    private Instant createdAt;
 
+    @UpdateTimestamp
     private Instant updatedAt;
     private Instant deletedAt;
 

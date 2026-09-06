@@ -2,6 +2,7 @@ package com.raheemspence.service;
 
 import com.raheemspence.dto.request.CreateCourseRequest;
 import com.raheemspence.dto.request.JoinCourseRequest;
+import com.raheemspence.dto.response.CourseDetailsResponse;
 import com.raheemspence.dto.response.CourseResponse;
 import com.raheemspence.dto.response.CreateCourseResponse;
 import com.raheemspence.dto.response.JoinCourseResponse;
@@ -10,13 +11,17 @@ import com.raheemspence.model.CourseMembership;
 import com.raheemspence.model.User;
 import com.raheemspence.repository.CourseMembershipRepository;
 import com.raheemspence.repository.CourseRepository;
+import com.raheemspence.repository.NoteRepository;
 import com.raheemspence.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.swing.text.html.Option;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CourseService {
@@ -24,20 +29,27 @@ public class CourseService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseMembershipRepository courseMembershipRepository;
+    private final NoteRepository noteRepository;
+
+    private static final String ALPHA_NUMERIC_UPPER = "ABCDEFGHIJKLMNOPQRXTUVWXYZ0123456789";
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     public CourseService(UserRepository userRepository,
                          CourseRepository courseRepository,
-                         CourseMembershipRepository courseMembershipRepository
+                         CourseMembershipRepository courseMembershipRepository,
+                         NoteRepository noteRepository
     ) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.courseMembershipRepository = courseMembershipRepository;
+        this.noteRepository = noteRepository;
     }
 
     public List<CourseResponse> getCoursesByUserId(Long userId) {
 
         // Get list of course memberships
         List<CourseMembership> courseMemberships = courseMembershipRepository.findByUserId(userId);
+
 
         // Create new list to store CourseResponse dto's
         List<CourseResponse> courseResponseList = new ArrayList<>();
@@ -49,17 +61,57 @@ public class CourseService {
             Long id = course.getId();
             String name = course.getName();
 
+            long memberships = courseMembershipRepository.countByCourseId(id);
+            long notes = noteRepository.countByCourseId(id);
+
             CourseResponse courseResponse = new CourseResponse();
 
             // Populate dto
             courseResponse.setId(id);
             courseResponse.setName(name);
+            courseResponse.setMemberCount(memberships);
+            courseResponse.setNoteCount(notes);
 
             // add dto to list
             courseResponseList.add(courseResponse);
         }
 
         return courseResponseList;
+    }
+
+    public CourseDetailsResponse getCourseDetails(Long userId, Long courseId) {
+        // Find course if exists
+        Optional<Course> optionalCourse = courseRepository.findById(courseId);
+
+        if (optionalCourse.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Course not found"
+            );
+        }
+
+        // Get actual course
+        Course course = optionalCourse.get();
+
+
+        // Verify user is a member
+        if (!courseMembershipRepository.existsByUserIdAndCourseId(userId, course.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "User is not in course"
+            );
+        }
+
+        // Get course details and set CourseDetailsResponse dto
+        CourseDetailsResponse courseDetailsResponse = new CourseDetailsResponse();
+
+        courseDetailsResponse.setId(course.getId());
+        courseDetailsResponse.setName(course.getName());
+        courseDetailsResponse.setMemberCount(courseMembershipRepository.countByCourseId(course.getId()));
+        courseDetailsResponse.setNoteCount(noteRepository.countByCourseId(course.getId()));
+        courseDetailsResponse.setJoinCode(course.getJoinCode());
+
+        return courseDetailsResponse;
     }
 
     public CreateCourseResponse createCourse(Long userId, CreateCourseRequest createCourseRequest) {
@@ -70,10 +122,19 @@ public class CourseService {
 
         course.setName(createCourseRequest.getCourseName());
         course.setSchool(createCourseRequest.getSchool());
-        course.setJoinCode(createCourseRequest.getJoinCode());
         course.setCreator(user);
+        course.setJoinCode(generateJoinCode());
+
+
 
         Course savedCourse = courseRepository.save(course);
+
+        CourseMembership courseMembership = new CourseMembership();
+        courseMembership.setCourse(savedCourse);
+        courseMembership.setUser(user);
+
+        courseMembershipRepository.save(courseMembership);
+
 
         CreateCourseResponse createCourseResponse = new CreateCourseResponse();
 
@@ -82,10 +143,28 @@ public class CourseService {
         createCourseResponse.setCreatorFirstName(user.getFirstName());
         createCourseResponse.setCreatorLastName(user.getLastName());
         createCourseResponse.setCreator_id(user.getId());
-        createCourseResponse.setJoinCode(createCourseRequest.getJoinCode());
         createCourseResponse.setCreatedAt(savedCourse.getCreatedAt());
+        createCourseResponse.setJoinCode(savedCourse.getJoinCode());
 
         return createCourseResponse;
+    }
+
+    public String generateJoinCode() {
+        // Generate code
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < 6; i ++) {
+            int randomIndex = secureRandom.nextInt(ALPHA_NUMERIC_UPPER.length());
+            char randomChar = ALPHA_NUMERIC_UPPER.charAt(randomIndex);
+            stringBuilder.append(randomChar);
+        }
+
+        // Check if code exists already
+        String code = stringBuilder.toString();
+        if (courseRepository.existsByJoinCode(code)) {
+           return generateJoinCode();
+        }
+        return code;
     }
 
     public JoinCourseResponse joinCourse(Long userId, JoinCourseRequest joinCourseRequest) {

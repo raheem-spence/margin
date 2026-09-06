@@ -7,7 +7,12 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "course_memberships")
+@Table(
+        name = "course_memberships",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "course_id"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +26,7 @@ public class CourseMembership {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
 }

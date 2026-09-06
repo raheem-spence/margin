@@ -1,6 +1,7 @@
 package com.raheemspence.repository;
 
 import com.raheemspence.model.CourseMembership;
+import com.raheemspence.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -24,5 +25,7 @@ public interface CourseMembershipRepository extends JpaRepository<CourseMembersh
     boolean existsByUserIdAndCourseId(Long userId, Long courseId);
 
     List<CourseMembership> findByUserId(Long userId);
+
+    long countByCourseId(Long courseId);
 
 }

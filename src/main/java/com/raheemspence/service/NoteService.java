@@ -65,6 +65,8 @@ public class NoteService {
             noteResponse.setOwnerId(ownerId);
             noteResponse.setOwnerFirstName(firstName);
             noteResponse.setOwnerLastName(lastName);
+            noteResponse.setCourseId(note.getCourse().getId());
+            noteResponse.setCourseName(note.getCourse().getName());
 
             recentNotesResponse.add(noteResponse);
 
@@ -162,6 +164,7 @@ public class NoteService {
         noteResponse.setOwnerFirstName(user.getFirstName());
         noteResponse.setOwnerLastName(user.getLastName());
         noteResponse.setCreatedAt(savedNote.getCreatedAt());
+        noteResponse.setUpdatedAt(savedNote.getUpdatedAt());
         noteResponse.setId(savedNote.getId());
         noteResponse.setCourseId(course.getId());
         noteResponse.setCourseName(course.getName());
@@ -239,6 +242,7 @@ public class NoteService {
         noteResponse.setCreatedAt(savedNote.getCreatedAt());
         noteResponse.setCourseName(course.getName());
         noteResponse.setCourseId(courseId);
+        noteResponse.setUpdatedAt(Instant.now());
 
         return noteResponse;
     }

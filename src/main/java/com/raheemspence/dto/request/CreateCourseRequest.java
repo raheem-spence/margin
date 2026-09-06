@@ -14,6 +14,4 @@ public class CreateCourseRequest {
     @NotBlank(message = "School cannot be empty")
     private String school;
 
-    @NotBlank(message = "Join code cannot be empty")
-    private String joinCode;
 }
