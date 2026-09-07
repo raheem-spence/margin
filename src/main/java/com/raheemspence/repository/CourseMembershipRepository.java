@@ -28,4 +28,6 @@ public interface CourseMembershipRepository extends JpaRepository<CourseMembersh
 
     long countByCourseId(Long courseId);
 
+    List<CourseMembership> findByCourseId(Long courseId);
+
 }

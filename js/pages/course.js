@@ -31,7 +31,7 @@ const userInitials = document.getElementById('initials');
 
 
 // function definitions
-async function renderCourseView(courses, courseId) {
+async function renderCourseView(courseId) {
     // course details
     const courseDetails = await fetchCourseDetails(courseId);
 
@@ -41,12 +41,49 @@ async function renderCourseView(courses, courseId) {
     const courseInviteDiv = document.createElement('div');
 
     const courseDataDiv = document.createElement('div');
-    const members = document.createElement('button');
+    const membersBtn = document.createElement('button');
     const membersSpan = document.createElement('span');
+
+    // members modal
+    const membersModal = document.createElement('dialog');
+
+    // header div
+    const membersModalHeader = document.createElement('div');
+
+
+    // title div
+    const membersCloseDiv = document.createElement('div');
+    const memberCount = document.createElement('h3');
+    const closeBtn = document.createElement('button');
+    const closeSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x">
+                            <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>`;
+    closeBtn.innerHTML = closeSvgString;
+    
+    // search bar
+    const memberSearchBarDiv = document.createElement('div');
+    const memberSearchBar = document.createElement('input');
+    const searchIconDiv = document.createElement('div');
+    const searchSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"
+                            style="color: var(--muted-foreground); flex-shrink: 0;"><circle cx="11" cy="11" r="8">
+                            </circle><path d="m21 21-4.3-4.3"></path></svg>`;
+
+    
+    memberSearchBar.placeholder = "Search members...";
+    searchIconDiv.innerHTML = searchSvgString;
+
+    // members container
+    const memberContainer = document.createElement('div');
+    
+
 
     const joinCodeBtn = document.createElement('button');
     const joinCodeSpan = document.createElement('span');
     const inviteBtn = document.createElement('button');
+    const inviteSpan = document.createElement('span');
 
     const courseName = document.createElement('h1');
 
@@ -58,7 +95,23 @@ async function renderCourseView(courses, courseId) {
                             </rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
                             </svg>`
 
+    const inviteSvgContainer = document.createElement('div');
+    const inviteSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus" 
+                            style="color: var(--muted-foreground);"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+                            </path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line>
+                            </svg>`;
+
+    inviteSvgContainer.innerHTML = inviteSvgString;
+    inviteSpan.textContent = "Invite";
+
     copySvgContainer.innerHTML = copySvgString;
+
+    // members modal 
+    memberCount.textContent = `${courseDetails.memberCount} Members`;
+
+
 
     joinCodeBtn.addEventListener('click', async () => {
         try {
@@ -92,6 +145,15 @@ async function renderCourseView(courses, courseId) {
        
     });
 
+    
+    membersBtn.addEventListener('click', () => {
+        membersModal.showModal();
+    })
+
+    closeBtn.addEventListener('click', () => {
+        membersModal.close();
+    })
+
     const memberSvgContainer = document.createElement('div');
     const memberSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" 
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
@@ -102,12 +164,8 @@ async function renderCourseView(courses, courseId) {
 
     joinCodeSpan.textContent = courseDetails.joinCode;
 
-    for (const course of courses) {
-        if (course.id === courseId) {
-            courseName.textContent = course.name;
-            membersSpan.textContent = `${course.memberCount} members`;
-        }
-    }
+    courseName.textContent = courseDetails.name;
+    membersSpan.textContent = `${courseDetails.memberCount} members`;
 
 
     // css classes
@@ -116,18 +174,31 @@ async function renderCourseView(courses, courseId) {
     courseInviteDiv.classList.add('course-invite-div');
     courseDataDiv.classList.add('course-data-div');
     courseName.classList.add('course-view-name');
-    members.classList.add('members-btn');
+    membersBtn.classList.add('members-btn');
     joinCodeBtn.classList.add('join-code-btn');
     copySvgContainer.classList.add('copy-svg-container');
+    inviteBtn.classList.add('invite-btn');
+    membersModal.classList.add('members-modal');
+    membersModalHeader.classList.add('modal-header');
+    membersCloseDiv.classList.add('members-close-div');
+    memberSearchBarDiv.classList.add('members-search-bar-div');
+    memberSearchBar.classList.add('member-search-bar');
+    closeBtn.classList.add('member-close-btn');
+
 
     // append to DOM
+    membersCloseDiv.append(memberCount, closeBtn);
+    memberSearchBarDiv.append(searchIconDiv, memberSearchBar);
+    membersModalHeader.append(membersCloseDiv, memberSearchBarDiv);
+    membersModal.append(membersModalHeader, memberContainer);
+    inviteBtn.append(inviteSvgContainer, inviteSpan);
     joinCodeBtn.append(copySvgContainer, joinCodeSpan);
-    members.append(memberSvgContainer, membersSpan);
-    courseDataDiv.append(courseName, members);
+    membersBtn.append(memberSvgContainer, membersSpan);
+    courseDataDiv.append(courseName, membersBtn);
     courseInfoDiv.append(courseDataDiv);
-    courseInviteDiv.append(joinCodeBtn);
+    courseInviteDiv.append(joinCodeBtn, inviteBtn);
     courseHeaderDiv.append(courseInfoDiv, courseInviteDiv);
-    courseContainer.append(courseHeaderDiv);
+    courseContainer.append(courseHeaderDiv, membersModal);
 }
 
 
@@ -249,5 +320,5 @@ sidebarDropdownBtn.addEventListener('click', e => {
 // initial page setup / function calls
 renderBreadCrumb(courses, courseId);
 renderSideBarCourses(courses);
-renderCourseView(courses, courseId);
+renderCourseView(courseId);
 renderUser();
