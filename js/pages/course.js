@@ -1,5 +1,5 @@
 // imports
-import { fetchCourses, fetchCourseDetails } from "../api/courses.js";
+import { fetchCourses, fetchCourseDetails, fetchCourseMembers } from "../api/courses.js";
 import { fetchCurrentUser } from "../api/users.js";
 
 // constanst / URL params / DOM elements
@@ -35,6 +35,12 @@ async function renderCourseView(courseId) {
     // course details
     const courseDetails = await fetchCourseDetails(courseId);
 
+    // course members
+    const courseMembers = await fetchCourseMembers(courseId);
+
+    // current user
+    const currentUser = await fetchCurrentUser();
+
     // dom elements
     const courseHeaderDiv = document.createElement('div');
     const courseInfoDiv = document.createElement('div');
@@ -43,6 +49,9 @@ async function renderCourseView(courseId) {
     const courseDataDiv = document.createElement('div');
     const membersBtn = document.createElement('button');
     const membersSpan = document.createElement('span');
+
+    // members modal wrapper div
+    const membersModalDiv = document.createElement('div');
 
     // members modal
     const membersModal = document.createElement('dialog');
@@ -77,7 +86,62 @@ async function renderCourseView(courseId) {
 
     // members container
     const memberContainer = document.createElement('div');
-    
+
+    // build members list
+    const memberList = document.createElement('ul');
+
+    for (const member of courseMembers) {
+        // create a li tag
+        const memberItem = document.createElement('li');
+
+        // div for member avatar
+        const memberInitials = document.createElement('div');
+        const memberInitialsSpan = document.createElement('span');
+        memberInitialsSpan.textContent = member.firstName[0].toUpperCase() + member.lastName[0].toUpperCase();
+
+        // div for name and joined at date
+        const memberInfo = document.createElement('div');
+        const memberNameDiv = document.createElement('div');
+        const memberName = document.createElement('p');
+        const joinedDate = document.createElement('span');
+
+        if (currentUser.id === member.id) {
+            const currUserSpan = document.createElement('span');
+            currUserSpan.textContent = "You";
+
+            currUserSpan.classList.add('current-user-span');
+
+            memberNameDiv.append(memberName, currUserSpan);
+        } else {
+            memberNameDiv.append(memberName);
+        }
+        
+
+        memberItem.classList.add('member-item');
+        memberInitials.classList.add('member-initials');
+        memberInfo.classList.add('member-info-div');
+        memberName.classList.add('member-name');
+        joinedDate.classList.add('joined-date');
+        memberNameDiv.classList.add('member-name-div');
+
+        memberName.textContent = member.firstName + " " + member.lastName;
+        joinedDate.textContent = `Joined ${formatJoinedDate(member.joinedAt)}`;
+
+        memberInitials.append(memberInitialsSpan);
+        memberInfo.append(memberNameDiv, joinedDate);
+        memberItem.append(memberInitials, memberInfo);
+
+        memberList.append(memberItem);
+    }
+
+    const fakeMember = "izuku midoriya";
+
+    for (let i = 0; i < 100; i++) {
+        const fakeItem = document.createElement('li');
+        fakeItem.append(fakeMember);
+
+        memberList.append(fakeItem);
+    }
 
 
     const joinCodeBtn = document.createElement('button');
@@ -178,19 +242,23 @@ async function renderCourseView(courseId) {
     joinCodeBtn.classList.add('join-code-btn');
     copySvgContainer.classList.add('copy-svg-container');
     inviteBtn.classList.add('invite-btn');
+    membersModalDiv.classList.add('members-modal-div');
     membersModal.classList.add('members-modal');
     membersModalHeader.classList.add('modal-header');
     membersCloseDiv.classList.add('members-close-div');
     memberSearchBarDiv.classList.add('members-search-bar-div');
     memberSearchBar.classList.add('member-search-bar');
     closeBtn.classList.add('member-close-btn');
+    memberContainer.classList.add('member-container');
 
 
     // append to DOM
+    memberContainer.append(memberList);
     membersCloseDiv.append(memberCount, closeBtn);
     memberSearchBarDiv.append(searchIconDiv, memberSearchBar);
     membersModalHeader.append(membersCloseDiv, memberSearchBarDiv);
-    membersModal.append(membersModalHeader, memberContainer);
+    membersModalDiv.append(membersModalHeader, memberContainer);
+    membersModal.append(membersModalDiv);
     inviteBtn.append(inviteSvgContainer, inviteSpan);
     joinCodeBtn.append(copySvgContainer, joinCodeSpan);
     membersBtn.append(memberSvgContainer, membersSpan);
@@ -282,6 +350,17 @@ async function renderUser() {
  
 }
 
+function formatJoinedDate(joinedAt) {
+    const joinedDate = new Date(joinedAt);
+
+    const options = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    }
+    return joinedDate.toLocaleDateString('en-US', options);
+}
+
 
 // event listeners 
 userBtn.addEventListener('click', e => {
@@ -316,6 +395,7 @@ sidebarDropdownBtn.addEventListener('click', e => {
     dropdownMenu.classList.toggle('open');
     sidebarArrow.classList.toggle('rotate');
 })
+
 
 // initial page setup / function calls
 renderBreadCrumb(courses, courseId);

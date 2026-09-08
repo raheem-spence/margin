@@ -8,7 +8,7 @@ export async function fetchCourses() {
 
         // 2. check if response status is ok
         if (!response.ok) {
-            throw new Error(`HTTP Error! Status: ${response.status}`)
+            throw new Error(`HTTP Error! Status: ${response.status}`);
         }
 
         // 3. parse the stream data into a json object
@@ -16,7 +16,7 @@ export async function fetchCourses() {
         return courses;
 
     } catch (error) {
-        console.log('Fetch failed:', error);
+        console.error('Fetch failed:', error);
     }
 }
 
@@ -28,13 +28,32 @@ export async function fetchCourseDetails(courseId) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP Error! Status: ${response.status}`)
+            throw new Error(`HTTP Error! Status: ${response.status}`);
         }
 
         const courseDetails = await response.json();
         return courseDetails;
 
     } catch (error) {
-        console.log('Fetch failed:', error);
+        console.error('Fetch failed:', error);
+    }
+}
+
+export async function fetchCourseMembers(courseId) {
+    try {
+        const response = await fetch(`http://127.0.0.1:8080/course/${courseId}/members`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+
+        const courseMembers = await response.json()
+        return courseMembers;
+
+    } catch(error) {
+        console.error('Fetch failed:', error)
     }
 }

@@ -32,6 +32,7 @@ public class UserService {
         userResponse.setFirstName(firstName);
         userResponse.setLastName(lastName);
         userResponse.setEmail(email);
+        userResponse.setId(user.getId());
 
         return userResponse;
     }

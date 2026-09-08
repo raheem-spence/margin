@@ -20,11 +20,6 @@ export async function loadDashboardNotes() {
 }
 
 
-
-
-
-
-
 export async function loadNotes(courseId) {
     try {
         // 1. send the network request

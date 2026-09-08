@@ -1,8 +1,11 @@
 package com.raheemspence.repository;
 
+import com.raheemspence.dto.response.CourseMemberResponse;
 import com.raheemspence.model.CourseMembership;
 import com.raheemspence.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -28,6 +31,7 @@ public interface CourseMembershipRepository extends JpaRepository<CourseMembersh
 
     long countByCourseId(Long courseId);
 
-    List<CourseMembership> findByCourseId(Long courseId);
+    @Query("SELECT NEW com.raheemspence.dto.response.CourseMemberResponse(u.id, u.firstName, u.lastName, cm.joinedAt) FROM CourseMembership cm JOIN User u on cm.user = u WHERE cm.course.id = :courseId")
+    List<CourseMemberResponse> findMembersByCourseId(@Param("courseId") Long courseId);
 
 }
