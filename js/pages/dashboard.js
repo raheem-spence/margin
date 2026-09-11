@@ -92,7 +92,6 @@ function renderDashboard() {
     const coursesGrid = document.createElement('div');
 
     const notesSection = document.createElement('section');
-    const notesGrid = document.createElement('div');
     const recentNotesHeader = document.createElement('div');
     const recentNotesHeading = document.createElement('h2');
     const allNotesBtn = document.createElement('button');
@@ -129,7 +128,7 @@ function renderDashboard() {
     recentNotesHeader.append(recentNotesHeading, allNotesBtn);
     coursesSection.append(coursesHeader, coursesGrid);
 
-    notesSection.append(recentNotesHeader, notesGrid);
+    notesSection.append(recentNotesHeader);
 
     dashboardTitleContainer.append(dashboardTitle, dashboardMessage);
 
@@ -137,7 +136,7 @@ function renderDashboard() {
 
     dashboardDiv.append(dashboardHeader, coursesSection, notesSection);
     renderDashboardCourses(coursesGrid, coursesSection, courses);
-    renderDashboardNotes(notesGrid, notesSection);
+    renderDashboardNotes(notesSection);
 }
  
 
@@ -227,15 +226,12 @@ async function renderDashboardCourses(coursesGrid, coursesSection, courses) {
             courseATag.append(courseCard);
             coursesGrid.appendChild(courseATag);
         }
-
-        coursesSection.appendChild(coursesGrid);
     }
 }
 
-async function renderDashboardNotes(notesGrid, notesSection) {
-    notesGrid.replaceChildren();
+async function renderDashboardNotes(notesSection) {
     const recentNotes = await loadDashboardNotes();
-    console.log(recentNotes);
+
     const noteList = document.createElement('ul');
 
     for (const note of recentNotes) {
@@ -293,6 +289,7 @@ async function renderDashboardNotes(notesGrid, notesSection) {
         noteItem.append(noteDiv);
         noteList.append(noteItem);
     }
+    
     notesSection.append(noteList);
 }
 
