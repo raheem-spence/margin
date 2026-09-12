@@ -1,6 +1,7 @@
 import { fetchCourses } from "../api/courses.js";
 import { fetchCurrentUser } from "../api/users.js";
 import { loadDashboardNotes, loadNotes, createNote, updateNote } from "../api/notes.js";
+import { formatRelativeTime } from "../utilities.js";
 
 // ---------- Configuration ---------- 
 const baseCourseUrl = 'http://127.0.0.1:5500/html/course.html';
@@ -255,7 +256,7 @@ async function renderDashboardNotes(notesSection) {
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
                                 stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock">
                                 <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>`
+                                </svg>`;
 
 
         noteDiv.classList.add('note-div');
@@ -625,63 +626,5 @@ async function handleUpdate(title, content, courseId, noteId) {
         clearInputs();
         createNoteBtn.textContent = "Create Note";
         currentlyEditingNoteId = null;
-    }
-}
-
-function formatRelativeTime(updatedAt) {
-    const now = new Date();
-
-    // convert updatedAt string into a Date
-    const updatedDate = new Date(updatedAt);
-
-    const diff = now - updatedDate;
-
-    // 1 minute in milliseconds
-    const minute = 60000;
-
-    const hour = minute * 60;
-
-    const day = 24 * hour;
- 
-    const twoDays = 2 * day;
-
-    const week = 7 * day;
-
-    const fourWeeks = 4 * week;
-
-    if (diff < minute) {
-        return "Just now"
-    } else if (diff < hour) {
-        // calculate how many minutes have passed
-        const minutes = Math.floor(diff / minute);
-        if (minutes === 1) {
-            return `${minutes} minute ago`;
-        } else {
-            return `${minutes} minutes ago`;
-        }
-    } else if (diff < day) {
-        const hours = Math.floor(diff / hour);
-        if (hours === 1) {
-            return `${hours} hour ago`;
-        } else {
-            return `${hours} hours ago`;
-        }
-    } else if (diff < twoDays) {
-        return "Yesterday"
-    } else if (diff < week) {
-        return `${Math.floor(diff / day)} days ago`;
-    } else if (diff < fourWeeks) {
-        const weeks = Math.floor(diff / week);
-        if (weeks === 1) {
-            return `${weeks} week ago`;
-        } else {
-            return `${weeks} weeks ago`;
-        }
-    } else {
-        const options = {
-            month: 'short',
-            day: 'numeric'
-        };
-        return `${updatedDate.toLocaleDateString('en-US', options)}`;
     }
 }

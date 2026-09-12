@@ -1,6 +1,8 @@
 // imports
 import { fetchCourses, fetchCourseDetails, fetchCourseMembers } from "../api/courses.js";
 import { fetchCurrentUser } from "../api/users.js";
+import { loadNotes } from "../api/notes.js"
+import { formatRelativeTime } from "../utilities.js";
 
 // constanst / URL params / DOM elements
 const baseCourseUrl = 'http://127.0.0.1:5500/html/course.html'
@@ -38,13 +40,17 @@ async function renderCourseView(courseId) {
     // get course members
     const courseMembers = await fetchCourseMembers(courseId);
 
+    // get course notes
+    const courseNotes = await loadNotes(courseId);
+
     // get current user
     const currentUser = await fetchCurrentUser();
 
     const membersModal = renderMembersModal(courseMembers, currentUser);
-    const notesContainer = renderCourseNotes(courseId);
+    const notesContainer = renderCourseNotes(courseNotes);
 
-    // // dom elements
+
+    // dom elements
     const courseHeaderDiv = document.createElement('div');
     const courseInfoDiv = document.createElement('div');
     const courseInviteDiv = document.createElement('div');
@@ -155,7 +161,8 @@ async function renderCourseView(courseId) {
     courseContainer.append(courseHeaderDiv, membersModal, notesContainer);
 }
 
-function renderCourseNotes(courseId) {
+function renderCourseNotes(courseNotes) {
+
     // notes section/container
     const notesContainer = document.createElement('section');
 
@@ -163,14 +170,85 @@ function renderCourseNotes(courseId) {
     const notesHeader = document.createElement('div');
 
     const searchDiv = document.createElement('div');
-    const searchSvgContainer = document.createElement('div')
+    const searchSvgContainer = document.createElement('div');
+    const searchSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"
+                            style="color: var(--muted-foreground); flex-shrink: 0;"><circle cx="11" cy="11" r="8">
+                            </circle><path d="m21 21-4.3-4.3"></path>
+                            </svg>`;
+
     const searchBar = document.createElement('input');
 
     const createNoteBtn = document.createElement('button');
+   
     // notes list
+    const noteSectionTitle = document.createElement('h2')
+
+    const noteList = document.createElement('ul');
+
+    for (const note of courseNotes) {
+        const noteDiv = document.createElement('div');
+
+        const noteTitleDiv = document.createElement('div');
+        const noteTitle = document.createElement('p');
+        const noteOwnerDiv = document.createElement('div');
+        const noteInitialsDiv = document.createElement('div');
+        const noteInitials = document.createElement('span');
+        const noteOwner = document.createElement('p');
+
+        const noteTimeDiv = document.createElement('div');
+        const clockSvgContainer = document.createElement('div');
+        const clockSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" 
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock">
+                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>`;
+        const noteTime = document.createElement('p');
+
+        notesContainer.classList.add('course-notes-container');
+
+        noteDiv.classList.add('note-div');
+        noteTitleDiv.classList.add('note-title-div');
+        noteTitle.classList.add('note-title');
+        noteOwner.classList.add('note-owner');
+        noteTime.classList.add('note-time');
+        noteTimeDiv.classList.add('note-time-div');
+        noteList.classList.add('note-list');
+        noteInitialsDiv.classList.add('note-initials-div');
+        noteInitials.classList.add('note-initials');
+        noteOwnerDiv.classList.add('note-owner-div');
+
+        noteTitle.textContent = note.title;
+        noteOwner.textContent = note.ownerFirstName + " " + note.ownerLastName;
+        noteInitials.textContent = note.ownerFirstName[0].toUpperCase() + note.ownerLastName[0].toUpperCase();
+        noteTime.textContent = formatRelativeTime(note.updatedAt);
+
+        clockSvgContainer.innerHTML = clockSvgString;
+
+       
+        noteTitleDiv.append(noteTitle, noteOwnerDiv);
+        noteTimeDiv.append(clockSvgContainer, noteTime);
+        noteInitialsDiv.append(noteInitials)
+        noteOwnerDiv.append(noteInitialsDiv, noteOwner);
+        noteDiv.append(noteTitleDiv, noteTimeDiv);
+
+        noteList.append(noteDiv);
+    }
+
+    notesHeader.classList.add('course-notes-header');
+    searchDiv.classList.add('search-bar-container');
+    searchSvgContainer.classList.add('search-icon');
+
+    searchSvgContainer.innerHTML = searchSvgString;
+    createNoteBtn.textContent = "Create note";
+    searchBar.placeholder = "Search notes...";
+
+    searchDiv.append(searchSvgContainer, searchBar);
+    notesHeader.append(searchDiv, createNoteBtn);
 
 
-
+    notesContainer.append(notesHeader, noteList);
     return notesContainer;
 }
 

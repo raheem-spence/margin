@@ -103,6 +103,7 @@ public class NoteService {
             String title = note.getTitle();
             String content = note.getContent();
             Instant createdAt = note.getCreatedAt();
+            Instant updatedAt = note.getUpdatedAt();
             Long ownerId = note.getOwner().getId();
             String firstName = note.getOwner().getFirstName();
             String lastName = note.getOwner().getLastName();
@@ -115,6 +116,7 @@ public class NoteService {
             noteResponse.setTitle(title);
             noteResponse.setContent(content);
             noteResponse.setCreatedAt(createdAt);
+            noteResponse.setUpdatedAt(updatedAt);
             noteResponse.setOwnerId(ownerId);
             noteResponse.setOwnerFirstName(firstName);
             noteResponse.setOwnerLastName(lastName);
@@ -148,10 +150,14 @@ public class NoteService {
 
         Note note = new Note();
 
+        Instant now = Instant.now();
+
         note.setTitle(noteRequest.getTitle());
         note.setContent(noteRequest.getContent());
         note.setOwner(user);
         note.setCourse(course);
+        note.setCreatedAt(now);
+        note.setUpdatedAt(now);
 
 
         Note savedNote = noteRepository.save(note);
@@ -226,9 +232,11 @@ public class NoteService {
 
 
         // Set title and content from NoteRequest
+        Instant now = Instant.now();
         note.setTitle(noteRequest.getTitle());
         note.setContent(noteRequest.getContent());
         note.setCourse(course);
+        note.setUpdatedAt(now);
 
         Note savedNote = noteRepository.save(note);
 
@@ -242,7 +250,7 @@ public class NoteService {
         noteResponse.setCreatedAt(savedNote.getCreatedAt());
         noteResponse.setCourseName(course.getName());
         noteResponse.setCourseId(courseId);
-        noteResponse.setUpdatedAt(Instant.now());
+        noteResponse.setUpdatedAt(savedNote.getUpdatedAt());
 
         return noteResponse;
     }
