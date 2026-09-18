@@ -36,6 +36,7 @@ const userInitials = document.getElementById('initials');
 async function renderCourseView(courseId) {
     // get course details
     const courseDetails = await fetchCourseDetails(courseId);
+    console.log(courseDetails);
 
     // get course members
     const courseMembers = await fetchCourseMembers(courseId);
@@ -47,7 +48,7 @@ async function renderCourseView(courseId) {
     const currentUser = await fetchCurrentUser();
 
     const membersModal = renderMembersModal(courseMembers, currentUser);
-    const notesContainer = renderCourseNotes(courseNotes);
+    const notesContainer = renderCourseNotes(courseNotes, courseDetails);
 
 
     // dom elements
@@ -118,6 +119,7 @@ async function renderCourseView(courseId) {
     
     membersBtn.addEventListener('click', () => {
         membersModal.showModal();
+        document.body.style.overflow = 'hidden';
     })
 
 
@@ -151,6 +153,9 @@ async function renderCourseView(courseId) {
 
     copySvgContainer.classList.add('copy-svg-container');
 
+    
+
+
     // append to DOM
     joinCodeBtn.append(joinCodeText, joinCodeDivider, joinCodeSpan, copySvgContainer);
     membersBtn.append(memberSvgContainer, membersSpan);
@@ -161,7 +166,7 @@ async function renderCourseView(courseId) {
     courseContainer.append(courseHeaderDiv, membersModal, notesContainer);
 }
 
-function renderCourseNotes(courseNotes) {
+function renderCourseNotes(courseNotes, courseDetails) {
 
     // notes section/container
     const notesContainer = document.createElement('section');
@@ -181,10 +186,32 @@ function renderCourseNotes(courseNotes) {
     const searchBar = document.createElement('input');
 
     const createNoteBtn = document.createElement('button');
-   
-    // notes list
-    const noteSectionTitle = document.createElement('h2')
 
+    const createNoteModal = renderCreateNoteModal(courseDetails);
+
+    createNoteBtn.addEventListener('click', () => {
+        createNoteModal.showModal();
+        document.body.style.overflow = 'hidden';
+    })
+
+    const plusSvgContainer = document.createElement('div');
+    const plusSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus">
+                            <path d="M5 12h14"></path><path d="M12 5v14"></path>
+                            </svg>`;
+    plusSvgContainer.innerHTML = plusSvgString;
+
+   
+    // notes list heading
+    const notesListHeadingDiv = document.createElement('div');
+    const noteSectionTitle = document.createElement('span');
+    const notesTotal = document.createElement('span');
+
+    noteSectionTitle.textContent = "All Notes";
+    notesTotal.textContent = courseDetails.noteCount;
+
+    // notes list
     const noteList = document.createElement('ul');
 
     for (const note of courseNotes) {
@@ -239,17 +266,128 @@ function renderCourseNotes(courseNotes) {
     notesHeader.classList.add('course-notes-header');
     searchDiv.classList.add('search-bar-container');
     searchSvgContainer.classList.add('search-icon');
+    createNoteBtn.classList.add('create-note-btn-course');
+
+    notesListHeadingDiv.classList.add('notes-list-heading-div');
+    noteSectionTitle.classList.add('notes-section-title');
+    notesTotal.classList.add('notes-total');
+
 
     searchSvgContainer.innerHTML = searchSvgString;
     createNoteBtn.textContent = "Create note";
     searchBar.placeholder = "Search notes...";
 
+    notesListHeadingDiv.append(noteSectionTitle, notesTotal);
+
     searchDiv.append(searchSvgContainer, searchBar);
+    createNoteBtn.prepend(plusSvgContainer);
     notesHeader.append(searchDiv, createNoteBtn);
 
 
-    notesContainer.append(notesHeader, noteList);
+    notesContainer.append(notesHeader, notesListHeadingDiv, createNoteModal, noteList);
     return notesContainer;
+}
+
+function renderCreateNoteModal(courseDetails) {
+
+    // create note modal
+    const createNoteModal = document.createElement('dialog');
+
+    // header div
+    const createNoteModalHeader = document.createElement('div');
+    const createNoteTitle = document.createElement('h3');
+    const createNoteMessage = document.createElement('p');
+
+    createNoteTitle.textContent = "Create a note";
+    createNoteMessage.textContent = "Shared instantly with your class.";
+
+
+
+    // course/close btn div
+    const createModalCloseDiv = document.createElement('div');
+    const courseName = document.createElement('span');
+   
+    const createModalCloseBtn = document.createElement('button');
+    const closeBtnString = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x">
+                            <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>`;   
+    
+    createModalCloseBtn.innerHTML = closeBtnString;
+    createModalCloseBtn.setAttribute('aria-label', 'Close');
+
+    courseName.textContent = courseDetails.name;
+    createModalCloseDiv.append(courseName, createModalCloseBtn);
+
+    // note title div
+    const modalNoteTitleDiv = document.createElement('div')
+    const modalNoteTitleLabel = document.createElement('label');
+    const modalNoteTitleInput = document.createElement('input');
+
+    modalNoteTitleLabel.htmlFor = 'create-note-title';
+    modalNoteTitleLabel.textContent = "Note title";
+
+    modalNoteTitleInput.id = 'create-note-title';
+    modalNoteTitleInput.placeholder = "Note title...";
+
+    // note content div
+    const modalNoteContentDiv = document.createElement('div');
+    const modalNoteContentLabel = document.createElement('label');
+    const modalNoteContent = document.createElement('textarea');
+
+    modalNoteContentLabel.htmlFor = 'create-note-content';
+    modalNoteContentLabel.textContent = 'Note content';
+
+    modalNoteContent.id = 'create-note-content';
+    modalNoteContent.placeholder = "Start writing your note...";
+
+    // share button div
+    const modalShareBtn = document.createElement('button');
+    const shareArrowSvgContainer = document.createElement('div');
+
+    shareArrowSvgContainer.setAttribute('aria-hidden', 'true');
+
+    modalShareBtn.textContent = "Share with class";
+    shareArrowSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
+                                        stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right">
+                                        <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`;
+
+    createNoteModal.classList.add('create-modal');
+    createNoteModalHeader.classList.add('create-note-modal-header');
+    createNoteTitle.classList.add('create-note-title');
+    createNoteMessage.classList.add('create-note-msg');
+    createModalCloseBtn.classList.add('modal-close-btn');
+    createModalCloseDiv.classList.add('modal-close-div');
+    courseName.classList.add('modal-course-badge');
+
+    modalNoteTitleInput.classList.add('modal-note-title');
+    modalNoteTitleLabel.classList.add('visually-hidden');
+    modalNoteTitleDiv.classList.add('modal-note-title-div');
+    modalNoteContentDiv.classList.add('modal-content-div');
+
+    modalNoteContent.classList.add('modal-textarea');
+    modalNoteContentLabel.classList.add('visually-hidden');
+
+    modalShareBtn.classList.add('share-btn');
+
+    createModalCloseBtn.addEventListener('click', () => {
+        createNoteModal.close();
+    })
+
+    createNoteModal.addEventListener('close', () => {
+        document.body.style.overflow = '';
+    })
+
+    modalShareBtn.append(shareArrowSvgContainer);
+    modalNoteTitleDiv.append(modalNoteTitleLabel, modalNoteTitleInput);
+    modalNoteContentDiv.append(modalNoteTitleDiv, modalNoteContentLabel, modalNoteContent, modalShareBtn);
+
+    createNoteModalHeader.append(createModalCloseDiv, createNoteTitle, createNoteMessage);
+   
+    createNoteModal.append(createNoteModalHeader, modalNoteContentDiv);
+
+    return createNoteModal;
 }
 
 function renderMembersModal(courseMembers, currentUser) {
@@ -326,13 +464,14 @@ function renderMembersModal(courseMembers, currentUser) {
 
     closeBtn.addEventListener('click', () => {
         membersModal.close();
+        document.body.style.overflow = '';
     })
 
     membersModalDiv.classList.add('members-modal-div');
     membersModal.classList.add('members-modal');
     membersModalHeader.classList.add('modal-header');
-    membersCloseDiv.classList.add('members-close-div');
-    closeBtn.classList.add('member-close-btn');
+    membersCloseDiv.classList.add('modal-close-div');
+    closeBtn.classList.add('modal-close-btn');
     memberContainer.classList.add('member-container');
 
     // members modal 

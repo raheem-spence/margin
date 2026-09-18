@@ -265,7 +265,7 @@ aside{
     border-radius: .5em;
     background-color: white;
     border: solid 1px #00000012;
-    margin: 1rem 0;
+    margin-bottom: 1rem;
     padding: 16px;
     transition: transform 0.2s ease;
     cursor: pointer;
@@ -388,32 +388,6 @@ aside{
     border-bottom: 1px solid #00000012;
     background-color: #f4f5f7f5;
     z-index: 100;
-
-}
-
-.search-bar-container {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    gap: 1.25rem;
-}
-
-.search-bar input{
-    border-radius: 8px;
-    border: 0.5px solid var(--gray-border);
-    width: 250px;
-    height: 32px;
-    padding: 0.7em;
-    padding-left: 2.5em;
-    box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.1);
-
-}
-
-.search-bar .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 5px;
-    color: #6b6b6b;
 }
 
 .new-note-container{
@@ -702,13 +676,13 @@ aside{
 
 }
 
-.create-cls-btn {
+.create-cls-btn, .create-note-btn-course{
     background-color: #5b21b6;
     transition: opacity 0.3s ease;
     color: #ffffff;
 }
 
-.create-cls-btn:hover {
+.create-cls-btn:hover, .create-note-btn-course:hover {
     opacity: 0.7;
 }
 
@@ -917,7 +891,7 @@ aside{
 }
 
 .members-modal::backdrop {
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(6px);
 }
 
@@ -932,21 +906,21 @@ aside{
     background-color: #ffffff;
 }
 
-.members-close-div {
+.modal-close-div {
     display: flex;
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
 }
 
-.members-close-div h3 {
+.modal-close-div h3 {
     font-size: 20px;
     font-weight: 600;
     letter-spacing: -0.02em;
     font-family: Fraunces, serif;
 }
 
-.member-close-btn {
+.modal-close-btn {
     background-color: transparent;
     border: none;
     border-radius: 8px;
@@ -955,7 +929,7 @@ aside{
     width: 32px;
 }
 
-.member-close-btn:hover {
+.modal-close-btn:hover {
     background-color: #EBEBEA;
 }
 
@@ -1033,7 +1007,10 @@ aside{
 }
 
 .course-notes-container {
+    display: flex;
+    flex-direction: column;
     padding: 32px 40px;
+    gap: 28px;
 }
 
 .course-notes-header {
@@ -1046,33 +1023,200 @@ aside{
 .search-bar-container {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    border-radius: 10px;
     position: relative;
-    gap: 1.25rem;
+    padding: 8px 14px;
+    gap: 8px;
+    width: 280px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.04);
+    background-color: #ffffff;
+    border: 1px solid var(--gray-border);
 }
 
 .search-bar-container input{
-    border-radius: 8px;
-    border: 0.5px solid var(--gray-border);
-    width: 250px;
-    height: 32px;
-    padding: 0.7em;
-    padding-left: 2.5em;
-    box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.1);
+    font-family: Figtree, sans-serif;
+    font-size: 13px;
     color: #141414;
+    width: 100%;
+    outline: none;
+    border: none;
+    line-height: 1.5;
 }
 
-
-
 .search-bar-container .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 9px;
+    display: block;
+    flex-shrink: 0;
     color: #6b6b6b;
 }
 
+.create-note-btn-course {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-family: Figtree, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+}
+
+.notes-list-heading-div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notes-section-title {
+    font-family: Figtree, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #141414;
+}
+
+.notes-total {
+    font-family: Figtree, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7c3aed;
+    background: #f3edff;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
 
 .note-title-div {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+}
+
+.create-modal {
+    background-color: #ffffff;
+    width: 720px;
+    height: 90vh;
+    margin: auto;
+    border-radius: 16px;
+    border: none;
+}
+
+.create-modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(6px);
+}
+
+.create-note-modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+}
+
+.create-note-title {
+    font-family: Fraunces, serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 3px;
+    margin-top: 12px;
+}
+
+.create-note-msg {
+    font-family: Figtree, sans-serif;
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.modal-course-badge {
+    background: #ebebea;
+    border-radius: 999px;
+    color: var(--muted-foreground);
+    font-family: Figtree, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    padding: 4px 8px;
+    text-transform: uppercase;
+}
+
+.modal-content-div {
+    padding: 20px 32px;
+}
+
+.modal-note-title {
+    font-family: Fraunces, sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--black-text-clr);
+    padding-bottom: 10px;
+    transition: border-bottom-color 150ms ease;
+    outline: none;
+    border: none;
+    border-bottom: 2px solid var(--border);
+    width: 100%;
+}
+
+.modal-note-title-div {
+    margin-bottom: 16px;
+}
+
+.modal-note-title:focus {
+    border-bottom-color: #7c3aed;
+}
+
+.modal-textarea {
+    font-family: Figtree, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--black-text-clr);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border 100ms ease;
+    outline: none;
+    width: 100%;
+    height: min(500px, 55vh);
+    resize: none;
+    padding: 16px 18px;
+}
+
+.modal-textarea:focus {
+    border: 2px solid #7c3aed;
+    
+}
+
+.share-btn {
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-family: Figtree, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: #7c3aed;
+    transition: background-color 150ms ease;
+    border: none;
+    border-radius: 10px;
+    width: 100%;
+    height: 50px;
+    margin-top: 12px;
+}
+
+.share-btn:hover {
+    background-color: #6D28D9;
+}
+
+.visually-hidden {
+    border: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
 }
