@@ -1,4 +1,3 @@
-
 export function formatRelativeTime(updatedAt) {
     const now = new Date();
 
@@ -55,4 +54,11 @@ export function formatRelativeTime(updatedAt) {
         };
         return `${updatedDate.toLocaleDateString('en-US', options)}`;
     }
+}
+
+
+export function delay(milliseconds) {
+    return new Promise(resolve => {
+        setTimeout(resolve, milliseconds);
+    });
 }

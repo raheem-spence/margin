@@ -1,8 +1,8 @@
 // imports
 import { fetchCourses, fetchCourseDetails, fetchCourseMembers } from "../api/courses.js";
 import { fetchCurrentUser } from "../api/users.js";
-import { loadNotes } from "../api/notes.js"
-import { formatRelativeTime } from "../utilities.js";
+import { loadNotes, createNote } from "../api/notes.js"
+import { formatRelativeTime, delay } from "../utilities.js";
 
 // constanst / URL params / DOM elements
 const baseCourseUrl = 'http://127.0.0.1:5500/html/course.html'
@@ -386,6 +386,31 @@ function renderCreateNoteModal(courseDetails) {
     createNoteModalHeader.append(createModalCloseDiv, createNoteTitle, createNoteMessage);
    
     createNoteModal.append(createNoteModalHeader, modalNoteContentDiv);
+
+    modalShareBtn.addEventListener('click', async () => {
+        const noteData = {
+            title: modalNoteTitleInput.value,
+            content: modalNoteContent.value
+        }
+
+        modalShareBtn.textContent = "Sharing...";
+      
+        const result = await Promise.all([
+            createNote(courseId, noteData),
+            delay(800)
+        ]);
+        
+        
+        if (result[0]) {
+            modalShareBtn.textContent = "Shared!";
+            modalShareBtn.style.backgroundColor = "green";
+            await delay(800);
+            createNoteModal.close();
+        } else {
+
+        }
+    
+    })
 
     return createNoteModal;
 }

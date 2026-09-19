@@ -58,8 +58,11 @@ export async function createNote(courseId, noteData) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
+        return true;
+
     } catch (error) {
-        console.log('Error:', error);
+        console.error('Error:', error);
+        return false;
     } 
 }
 
