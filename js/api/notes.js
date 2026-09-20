@@ -58,7 +58,9 @@ export async function createNote(courseId, noteData) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        return true;
+        const newNoteData = await response.json();
+
+        return newNoteData;
 
     } catch (error) {
         console.error('Error:', error);

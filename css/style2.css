@@ -1234,7 +1234,8 @@ aside{
 }
 
 .toast.hidden {
-    display: none;
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
 }
 
 .toast {
@@ -1252,4 +1253,6 @@ aside{
     background-color: #f0faf3;
     color: #166534;
     border: 1px solid #bbebc8;
+    opacity: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }

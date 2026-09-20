@@ -48,7 +48,6 @@ document.body.appendChild(toast);
 async function renderCourseView(courseId) {
     // get course details
     const courseDetails = await fetchCourseDetails(courseId);
-    console.log(courseDetails);
 
     // get course members
     const courseMembers = await fetchCourseMembers(courseId);
@@ -199,7 +198,7 @@ function renderCourseNotes(courseNotes, courseDetails) {
 
     const createNoteBtn = document.createElement('button');
 
-    const createNoteModal = renderCreateNoteModal(courseDetails);
+    const createNoteModal = renderCreateNoteModal(courseDetails, insertNewNote);
 
     createNoteBtn.addEventListener('click', () => {
         createNoteModal.showModal();
@@ -226,53 +225,16 @@ function renderCourseNotes(courseNotes, courseDetails) {
     // notes list
     const noteList = document.createElement('ul');
 
+    function insertNewNote(newNoteData) {
+        const newNote = addNote(newNoteData);
+        noteList.prepend(newNote);
+        const newNoteTotal = Number(notesTotal.textContent) + 1;
+        notesTotal.textContent = String(newNoteTotal);
+    }
+
     for (const note of courseNotes) {
-        const noteDiv = document.createElement('div');
-
-        const noteTitleDiv = document.createElement('div');
-        const noteTitle = document.createElement('p');
-        const noteOwnerDiv = document.createElement('div');
-        const noteInitialsDiv = document.createElement('div');
-        const noteInitials = document.createElement('span');
-        const noteOwner = document.createElement('p');
-
-        const noteTimeDiv = document.createElement('div');
-        const clockSvgContainer = document.createElement('div');
-        const clockSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" 
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
-                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock">
-                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>`;
-        const noteTime = document.createElement('p');
-
-        notesContainer.classList.add('course-notes-container');
-
-        noteDiv.classList.add('note-div');
-        noteTitleDiv.classList.add('note-title-div');
-        noteTitle.classList.add('note-title');
-        noteOwner.classList.add('note-owner');
-        noteTime.classList.add('note-time');
-        noteTimeDiv.classList.add('note-time-div');
-        noteList.classList.add('note-list');
-        noteInitialsDiv.classList.add('note-initials-div');
-        noteInitials.classList.add('note-initials');
-        noteOwnerDiv.classList.add('note-owner-div');
-
-        noteTitle.textContent = note.title;
-        noteOwner.textContent = note.ownerFirstName + " " + note.ownerLastName;
-        noteInitials.textContent = note.ownerFirstName[0].toUpperCase() + note.ownerLastName[0].toUpperCase();
-        noteTime.textContent = formatRelativeTime(note.updatedAt);
-
-        clockSvgContainer.innerHTML = clockSvgString;
-
-       
-        noteTitleDiv.append(noteTitle, noteOwnerDiv);
-        noteTimeDiv.append(clockSvgContainer, noteTime);
-        noteInitialsDiv.append(noteInitials)
-        noteOwnerDiv.append(noteInitialsDiv, noteOwner);
-        noteDiv.append(noteTitleDiv, noteTimeDiv);
-
-        noteList.append(noteDiv);
+        const noteElement = addNote(note);
+        noteList.append(noteElement);
     }
 
     notesHeader.classList.add('course-notes-header');
@@ -280,6 +242,9 @@ function renderCourseNotes(courseNotes, courseDetails) {
     searchSvgContainer.classList.add('search-icon');
     createNoteBtn.classList.add('create-note-btn-course');
 
+    notesContainer.classList.add('course-notes-container');
+
+    noteList.classList.add('note-list');
     notesListHeadingDiv.classList.add('notes-list-heading-div');
     noteSectionTitle.classList.add('notes-section-title');
     notesTotal.classList.add('notes-total');
@@ -300,7 +265,9 @@ function renderCourseNotes(courseNotes, courseDetails) {
     return notesContainer;
 }
 
-function renderCreateNoteModal(courseDetails) {
+function renderCreateNoteModal(courseDetails, insertNewNote) {
+
+    let isNoteSuccessful = false;
 
     // create note modal
     const createNoteModal = document.createElement('dialog');
@@ -335,6 +302,7 @@ function renderCreateNoteModal(courseDetails) {
     const modalNoteTitleDiv = document.createElement('div')
     const modalNoteTitleLabel = document.createElement('label');
     const modalNoteTitleInput = document.createElement('input');
+    const titleError = document.createElement('p');
 
     modalNoteTitleLabel.htmlFor = 'create-note-title';
     modalNoteTitleLabel.textContent = "Note title";
@@ -346,6 +314,7 @@ function renderCreateNoteModal(courseDetails) {
     const modalNoteContentDiv = document.createElement('div');
     const modalNoteContentLabel = document.createElement('label');
     const modalNoteContent = document.createElement('textarea');
+    const contentError = document.createElement('p');
 
     modalNoteContentLabel.htmlFor = 'create-note-content';
     modalNoteContentLabel.textContent = 'Note content';
@@ -399,6 +368,11 @@ function renderCreateNoteModal(courseDetails) {
     createNoteModal.addEventListener('close', () => {
         document.body.style.overflow = '';
         resetCreateNoteModal(createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString);
+        if (isNoteSuccessful) {
+            showToast("Note shared with class");
+        }
+
+        isNoteSuccessful = false;
     })
 
     modalShareBtn.append(modalShareBtnTxt, shareArrowSvgContainer);
@@ -415,8 +389,20 @@ function renderCreateNoteModal(courseDetails) {
             content: modalNoteContent.value
         }
 
+        if (noteData.title.trim() === "") {
+            alert("Title needed");
+            return;
+        }
+
+        if (noteData.content.trim() === "") {
+            alert("Content needed");
+            return;
+        }
+        
+
         modalShareBtnTxt.textContent = "Sharing...";
         shareArrowSvgContainer.innerHTML = "";
+
       
         const result = await Promise.all([
             createNote(courseId, noteData),
@@ -425,6 +411,9 @@ function renderCreateNoteModal(courseDetails) {
         
         
         if (result[0]) {
+            const newNoteData = result[0];
+            insertNewNote(newNoteData);
+            isNoteSuccessful = true;
             modalShareBtnTxt.textContent = "Shared";
             shareArrowSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
@@ -433,7 +422,6 @@ function renderCreateNoteModal(courseDetails) {
             modalShareBtn.classList.add('success');
             await delay(800);
             createNoteModal.classList.add('closing');
-            showToast("Note shared with class");
         } else {
             modalShareBtnTxt.textContent = "Share with class";
             shareArrowSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
@@ -442,6 +430,7 @@ function renderCreateNoteModal(courseDetails) {
                                                 <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`;
             modalShareBtn.classList.remove('success');
         }
+    
     
     })
 
@@ -556,9 +545,57 @@ function renderMembersModal(courseMembers, currentUser) {
     return membersModal;
 }
 
-function showToast(textContent) {
+async function showToast(textContent) {
     toastTxt.textContent = textContent;
+    await delay(300);
     toast.classList.remove('hidden');
+    await delay(2000);
+    toast.classList.add('hidden');
+}
+
+function addNote(newNoteData) {
+    const noteDiv = document.createElement('div');
+
+        const noteTitleDiv = document.createElement('div');
+        const noteTitle = document.createElement('p');
+        const noteOwnerDiv = document.createElement('div');
+        const noteInitialsDiv = document.createElement('div');
+        const noteInitials = document.createElement('span');
+        const noteOwner = document.createElement('p');
+
+        const noteTimeDiv = document.createElement('div');
+        const clockSvgContainer = document.createElement('div');
+        const clockSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" 
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock">
+                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>`;
+        const noteTime = document.createElement('p');
+
+        noteDiv.classList.add('note-div');
+        noteTitleDiv.classList.add('note-title-div');
+        noteTitle.classList.add('note-title');
+        noteOwner.classList.add('note-owner');
+        noteTime.classList.add('note-time');
+        noteTimeDiv.classList.add('note-time-div');
+        noteInitialsDiv.classList.add('note-initials-div');
+        noteInitials.classList.add('note-initials');
+        noteOwnerDiv.classList.add('note-owner-div');
+
+        noteTitle.textContent = newNoteData.title;
+        noteOwner.textContent = newNoteData.ownerFirstName + " " + newNoteData.ownerLastName;
+        noteInitials.textContent = newNoteData.ownerFirstName[0].toUpperCase() + newNoteData.ownerLastName[0].toUpperCase();
+        noteTime.textContent = formatRelativeTime(newNoteData.updatedAt);
+
+        clockSvgContainer.innerHTML = clockSvgString;
+
+        noteTitleDiv.append(noteTitle, noteOwnerDiv);
+        noteTimeDiv.append(clockSvgContainer, noteTime);
+        noteInitialsDiv.append(noteInitials);
+        noteOwnerDiv.append(noteInitialsDiv, noteOwner);
+        noteDiv.append(noteTitleDiv, noteTimeDiv);
+
+    return noteDiv;
 }
 
 
