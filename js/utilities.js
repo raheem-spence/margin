@@ -56,9 +56,21 @@ export function formatRelativeTime(updatedAt) {
     }
 }
 
+export function formatJoinedDate(joinedAt) {
+    const joinedDate = new Date(joinedAt);
+
+    const options = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    }
+    return joinedDate.toLocaleDateString('en-US', options);
+}
+
 
 export function delay(milliseconds) {
     return new Promise(resolve => {
         setTimeout(resolve, milliseconds);
     });
 }
+

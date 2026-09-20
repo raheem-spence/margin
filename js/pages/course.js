@@ -2,7 +2,7 @@
 import { fetchCourses, fetchCourseDetails, fetchCourseMembers } from "../api/courses.js";
 import { fetchCurrentUser } from "../api/users.js";
 import { loadNotes, createNote } from "../api/notes.js"
-import { formatRelativeTime, delay } from "../utilities.js";
+import { formatRelativeTime, delay, formatJoinedDate } from "../utilities.js";
 
 // constanst / URL params / DOM elements
 const baseCourseUrl = 'http://127.0.0.1:5500/html/course.html'
@@ -29,6 +29,18 @@ const profileArrow = document.getElementById('profile-arrow');
 const userDiv = document.getElementById("user-info");
 const userIconName = document.getElementById('user-icon-name');
 const userInitials = document.getElementById('initials');
+
+const toast = document.createElement('div');
+const toastTxt = document.createElement('span');
+const checkMarkSvgContainer = document.createElement('div');
+checkMarkSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" 
+                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check preview-icon">
+                                <path d="M20 6 9 17l-5-5"/></svg>`;
+
+toast.classList.add('toast', 'hidden');
+toast.append(toastTxt, checkMarkSvgContainer);
+document.body.appendChild(toast);
 
 
 
@@ -343,15 +355,17 @@ function renderCreateNoteModal(courseDetails) {
 
     // share button div
     const modalShareBtn = document.createElement('button');
+    const modalShareBtnTxt = document.createElement('span');
     const shareArrowSvgContainer = document.createElement('div');
+    const shareArrowString = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right">
+                            <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`;
 
     shareArrowSvgContainer.setAttribute('aria-hidden', 'true');
 
-    modalShareBtn.textContent = "Share with class";
-    shareArrowSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
-                                        stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right">
-                                        <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`;
+    modalShareBtnTxt.textContent = "Share with class";
+    shareArrowSvgContainer.innerHTML = shareArrowString;
 
     createNoteModal.classList.add('create-modal');
     createNoteModalHeader.classList.add('create-note-modal-header');
@@ -375,11 +389,19 @@ function renderCreateNoteModal(courseDetails) {
         createNoteModal.close();
     })
 
-    createNoteModal.addEventListener('close', () => {
-        document.body.style.overflow = '';
+    createNoteModal.addEventListener('transitionend', (event) => {
+        if (event.propertyName === 'opacity') {
+            createNoteModal.close();
+        }
     })
 
-    modalShareBtn.append(shareArrowSvgContainer);
+
+    createNoteModal.addEventListener('close', () => {
+        document.body.style.overflow = '';
+        resetCreateNoteModal(createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString);
+    })
+
+    modalShareBtn.append(modalShareBtnTxt, shareArrowSvgContainer);
     modalNoteTitleDiv.append(modalNoteTitleLabel, modalNoteTitleInput);
     modalNoteContentDiv.append(modalNoteTitleDiv, modalNoteContentLabel, modalNoteContent, modalShareBtn);
 
@@ -393,7 +415,8 @@ function renderCreateNoteModal(courseDetails) {
             content: modalNoteContent.value
         }
 
-        modalShareBtn.textContent = "Sharing...";
+        modalShareBtnTxt.textContent = "Sharing...";
+        shareArrowSvgContainer.innerHTML = "";
       
         const result = await Promise.all([
             createNote(courseId, noteData),
@@ -402,17 +425,39 @@ function renderCreateNoteModal(courseDetails) {
         
         
         if (result[0]) {
-            modalShareBtn.textContent = "Shared!";
-            modalShareBtn.style.backgroundColor = "green";
+            modalShareBtnTxt.textContent = "Shared";
+            shareArrowSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check preview-icon">
+                                                <path d="M20 6 9 17l-5-5"/></svg>`;
+            modalShareBtn.classList.add('success');
             await delay(800);
-            createNoteModal.close();
+            createNoteModal.classList.add('closing');
+            showToast("Note shared with class");
         } else {
-
+            modalShareBtnTxt.textContent = "Share with class";
+            shareArrowSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" 
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" 
+                                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right">
+                                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>`;
+            modalShareBtn.classList.remove('success');
         }
     
     })
 
     return createNoteModal;
+}
+
+function resetCreateNoteModal(createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString) {
+    
+    modalNoteTitleInput.value = "";
+    modalNoteContent.value = "";
+
+    modalShareBtn.classList.remove('success');
+    modalShareBtnTxt.textContent = "Share with class";
+    shareArrowSvgContainer.innerHTML = shareArrowString;
+    createNoteModal.classList.remove('closing');
+
 }
 
 function renderMembersModal(courseMembers, currentUser) {
@@ -511,6 +556,11 @@ function renderMembersModal(courseMembers, currentUser) {
     return membersModal;
 }
 
+function showToast(textContent) {
+    toastTxt.textContent = textContent;
+    toast.classList.remove('hidden');
+}
+
 
 async function renderBreadCrumb(courses, courseId) {
     const currCourse = document.createElement('p');
@@ -590,17 +640,6 @@ async function renderUser() {
     userIconName.textContent = user.firstName + " " + user.lastName[0] + ".";
     userInitials.textContent = user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase();
  
-}
-
-function formatJoinedDate(joinedAt) {
-    const joinedDate = new Date(joinedAt);
-
-    const options = {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    }
-    return joinedDate.toLocaleDateString('en-US', options);
 }
 
 
