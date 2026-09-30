@@ -92,7 +92,7 @@ public class NoteService {
                 );
 
         // Get notes as a list
-        List<Note> notes = noteRepository.findByCourseId(courseId);
+        List<Note> notes = noteRepository.findByCourseIdOrderByUpdatedAtDesc(courseId);
 
         // Create new list to store NoteResponse dto's
         List<NoteResponse> noteResponseList = new ArrayList<>();

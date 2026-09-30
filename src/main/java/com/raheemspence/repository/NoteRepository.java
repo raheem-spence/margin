@@ -11,7 +11,8 @@ import java.util.List;
 public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findByOwnerId(Long ownerId);
 
-    List<Note> findByCourseId(Long courseId);
+
+    List<Note> findByCourseIdOrderByUpdatedAtDesc(Long courseId);
 
     @Query("SELECT n FROM Note n JOIN CourseMembership cm ON n.course = cm.course WHERE cm.user.id = :userId ORDER BY n.updatedAt DESC NULLS LAST")
     List<Note> findAccessibleNotesByUserId(@Param("userId") Long userId, Pageable pageable);

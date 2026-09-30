@@ -54,6 +54,7 @@ async function renderCourseView(courseId) {
 
     // get course notes
     const courseNotes = await loadNotes(courseId);
+    console.log(courseNotes);
 
     // get current user
     const currentUser = await fetchCurrentUser();
@@ -195,6 +196,7 @@ function renderCourseNotes(courseNotes, courseDetails) {
                             </svg>`;
 
     const searchBar = document.createElement('input');
+    searchBar.type = "search";
 
     const createNoteBtn = document.createElement('button');
 
@@ -237,6 +239,22 @@ function renderCourseNotes(courseNotes, courseDetails) {
         noteList.append(noteElement);
     }
 
+    searchNotes(courseNotes, searchBar, noteList, notesTotal);
+
+    noteList.addEventListener('click', (event) => {
+        // find the closest li
+        const closestLi = event.target.closest('li');
+
+        if (closestLi && noteList.contains(closestLi)) {
+
+            for (const note of courseNotes) {
+                if (note.id === parseInt(closestLi.dataset.id)) {
+                    renderNoteDetailView(note);
+                }
+            }
+        }
+    })
+
     notesHeader.classList.add('course-notes-header');
     searchDiv.classList.add('search-bar-container');
     searchSvgContainer.classList.add('search-icon');
@@ -278,7 +296,7 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
     const createNoteMessage = document.createElement('p');
 
     createNoteTitle.textContent = "Create a note";
-    createNoteMessage.textContent = "Shared instantly with your class.";
+    createNoteMessage.textContent = "Share with your classmates.";
 
 
 
@@ -303,6 +321,9 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
     const modalNoteTitleLabel = document.createElement('label');
     const modalNoteTitleInput = document.createElement('input');
     const titleError = document.createElement('p');
+    titleError.textContent = "Title needed";
+    titleError.classList.add('field-error', 'hidden');
+
 
     modalNoteTitleLabel.htmlFor = 'create-note-title';
     modalNoteTitleLabel.textContent = "Note title";
@@ -315,6 +336,8 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
     const modalNoteContentLabel = document.createElement('label');
     const modalNoteContent = document.createElement('textarea');
     const contentError = document.createElement('p');
+    contentError.textContent = "Content needed";
+    contentError.classList.add('field-error', 'hidden');
 
     modalNoteContentLabel.htmlFor = 'create-note-content';
     modalNoteContentLabel.textContent = 'Note content';
@@ -323,6 +346,7 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
     modalNoteContent.placeholder = "Start writing your note...";
 
     // share button div
+    const modalShareFooter = document.createElement('footer');
     const modalShareBtn = document.createElement('button');
     const modalShareBtnTxt = document.createElement('span');
     const shareArrowSvgContainer = document.createElement('div');
@@ -353,6 +377,10 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
     modalNoteContentLabel.classList.add('visually-hidden');
 
     modalShareBtn.classList.add('share-btn');
+    modalShareFooter.classList.add('share-footer');
+
+    let titleHasError = false;
+    let contentHasError = false;
 
     createModalCloseBtn.addEventListener('click', () => {
         createNoteModal.close();
@@ -367,21 +395,60 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
 
     createNoteModal.addEventListener('close', () => {
         document.body.style.overflow = '';
-        resetCreateNoteModal(createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString);
+        resetCreateNoteModal(titleError, contentError, createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString);
         if (isNoteSuccessful) {
             showToast("Note shared with class");
         }
 
+        titleHasError = false;
+        contentHasError = false;
         isNoteSuccessful = false;
     })
 
     modalShareBtn.append(modalShareBtnTxt, shareArrowSvgContainer);
-    modalNoteTitleDiv.append(modalNoteTitleLabel, modalNoteTitleInput);
-    modalNoteContentDiv.append(modalNoteTitleDiv, modalNoteContentLabel, modalNoteContent, modalShareBtn);
+    modalShareFooter.append(modalShareBtn);
+    modalNoteTitleDiv.append(modalNoteTitleLabel, modalNoteTitleInput, titleError);
+    modalNoteContentDiv.append(modalNoteTitleDiv, modalNoteContentLabel, modalNoteContent, contentError);
 
     createNoteModalHeader.append(createModalCloseDiv, createNoteTitle, createNoteMessage);
    
-    createNoteModal.append(createNoteModalHeader, modalNoteContentDiv);
+    createNoteModal.append(createNoteModalHeader, modalNoteContentDiv, modalShareFooter);
+
+    modalNoteTitleInput.addEventListener('input', () => {
+
+        if (!titleHasError) {
+            if (modalNoteTitleInput.value.trim() === "") {
+                titleError.classList.add('hidden');
+                modalNoteTitleInput.classList.remove('input-error');
+            }
+        } else {
+            if (modalNoteTitleInput.value.trim() != "") {
+                titleError.classList.add('hidden');
+                modalNoteTitleInput.classList.remove('input-error');
+            } else {
+                titleError.classList.remove('hidden');
+                modalNoteTitleInput.classList.add('input-error');
+            }
+        }
+    })
+
+    modalNoteContent.addEventListener('input', () => {
+
+        if (!contentHasError) {
+            if (modalNoteContent.value.trim() === "") {
+                contentError.classList.add('hidden');
+                modalNoteContent.classList.remove('content-error');
+            }
+        } else {
+            if (modalNoteContent.value.trim() != "") {
+                contentError.classList.add('hidden');
+                modalNoteContent.classList.remove('content-error');
+            } else {
+                contentError.classList.remove('hidden');
+                modalNoteContent.classList.add('content-error');
+            }
+        }
+    })
 
     modalShareBtn.addEventListener('click', async () => {
         const noteData = {
@@ -390,12 +457,16 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
         }
 
         if (noteData.title.trim() === "") {
-            alert("Title needed");
+            titleError.classList.remove('hidden');
+            modalNoteTitleInput.classList.add('input-error');
+            titleHasError = true;
             return;
         }
 
         if (noteData.content.trim() === "") {
-            alert("Content needed");
+            contentError.classList.remove('hidden');
+            modalNoteContent.classList.add('content-error');
+            contentHasError = true;
             return;
         }
         
@@ -437,10 +508,16 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
     return createNoteModal;
 }
 
-function resetCreateNoteModal(createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString) {
+function resetCreateNoteModal(titleError, contentError, createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString) {
     
     modalNoteTitleInput.value = "";
     modalNoteContent.value = "";
+
+    modalNoteTitleInput.classList.remove('input-error');
+    modalNoteContent.classList.remove('content-error');
+
+    titleError.classList.add('hidden');
+    contentError.classList.add('hidden');
 
     modalShareBtn.classList.remove('success');
     modalShareBtnTxt.textContent = "Share with class";
@@ -545,6 +622,56 @@ function renderMembersModal(courseMembers, currentUser) {
     return membersModal;
 }
 
+function searchNotes(courseNotes, searchBar, noteList, notesTotal) {
+    searchBar.addEventListener('input', (event) => {
+        const searchString = event.target.value.toLowerCase();
+
+        const filteredNotes = courseNotes.filter((note) => {
+            // check if title matches search string
+            return (
+                note.title.toLowerCase().includes(searchString)
+            );
+        });
+
+        noteList.replaceChildren();
+
+        if (filteredNotes.length === 0) {
+            const emptySearchNotesDiv = document.createElement('div');
+            const noteSvgContainer = document.createElement('div');
+            const mainMsg = document.createElement('p');
+            const secondMsg = document.createElement('p');
+            
+            emptySearchNotesDiv.classList.add('empty-search-notes');
+            mainMsg.classList.add('main-msg-empty-notes');
+            secondMsg.classList.add('second-msg-empty-notes');
+            noteSvgContainer.classList.add('empty-note-svg');
+            
+            noteSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" 
+                                        stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text" 
+                                        style="color: var(--primary);"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z">
+                                        </path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
+                                        </svg>`;
+            mainMsg.textContent = "No notes match your search";
+            secondMsg.textContent = "Try a different search or clear your search to see all notes."
+            
+            emptySearchNotesDiv.append(noteSvgContainer, mainMsg, secondMsg)
+            noteList.append(emptySearchNotesDiv);
+        } else {
+
+            filteredNotes.forEach(note => {
+                const noteElement = addNote(note);
+
+                noteList.append(noteElement);
+            })
+        }
+
+
+        notesTotal.textContent = filteredNotes.length;
+    });
+}
+
+
 async function showToast(textContent) {
     toastTxt.textContent = textContent;
     await delay(300);
@@ -554,48 +681,81 @@ async function showToast(textContent) {
 }
 
 function addNote(newNoteData) {
+    const noteLi = document.createElement('li');
     const noteDiv = document.createElement('div');
 
-        const noteTitleDiv = document.createElement('div');
-        const noteTitle = document.createElement('p');
-        const noteOwnerDiv = document.createElement('div');
-        const noteInitialsDiv = document.createElement('div');
-        const noteInitials = document.createElement('span');
-        const noteOwner = document.createElement('p');
+    const noteTitleDiv = document.createElement('div');
+    const noteTitle = document.createElement('p');
+    const noteOwnerDiv = document.createElement('div');
+    const noteInitialsDiv = document.createElement('div');
+    const noteInitials = document.createElement('span');
+    const noteOwner = document.createElement('p');
 
-        const noteTimeDiv = document.createElement('div');
-        const clockSvgContainer = document.createElement('div');
-        const clockSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" 
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
-                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock">
-                                <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>`;
-        const noteTime = document.createElement('p');
+    const noteTimeDiv = document.createElement('div');
+    const clockSvgContainer = document.createElement('div');
+    const clockSvgString = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock">
+                            <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>`;
+    const noteTime = document.createElement('p');
 
-        noteDiv.classList.add('note-div');
-        noteTitleDiv.classList.add('note-title-div');
-        noteTitle.classList.add('note-title');
-        noteOwner.classList.add('note-owner');
-        noteTime.classList.add('note-time');
-        noteTimeDiv.classList.add('note-time-div');
-        noteInitialsDiv.classList.add('note-initials-div');
-        noteInitials.classList.add('note-initials');
-        noteOwnerDiv.classList.add('note-owner-div');
+    noteDiv.classList.add('note-div');
+    noteTitleDiv.classList.add('note-title-div');
+    noteTitle.classList.add('note-title');
+    noteOwner.classList.add('note-owner');
+    noteTime.classList.add('note-time');
+    noteTimeDiv.classList.add('note-time-div');
+    noteInitialsDiv.classList.add('note-initials-div');
+    noteInitials.classList.add('note-initials');
+    noteOwnerDiv.classList.add('note-owner-div');
 
-        noteTitle.textContent = newNoteData.title;
-        noteOwner.textContent = newNoteData.ownerFirstName + " " + newNoteData.ownerLastName;
-        noteInitials.textContent = newNoteData.ownerFirstName[0].toUpperCase() + newNoteData.ownerLastName[0].toUpperCase();
-        noteTime.textContent = formatRelativeTime(newNoteData.updatedAt);
+    noteLi.dataset.id = newNoteData.id;
 
-        clockSvgContainer.innerHTML = clockSvgString;
+    noteTitle.textContent = newNoteData.title;
+    noteOwner.textContent = newNoteData.ownerFirstName + " " + newNoteData.ownerLastName;
+    noteInitials.textContent = newNoteData.ownerFirstName[0].toUpperCase() + newNoteData.ownerLastName[0].toUpperCase();
+    noteTime.textContent = formatRelativeTime(newNoteData.updatedAt);
 
-        noteTitleDiv.append(noteTitle, noteOwnerDiv);
-        noteTimeDiv.append(clockSvgContainer, noteTime);
-        noteInitialsDiv.append(noteInitials);
-        noteOwnerDiv.append(noteInitialsDiv, noteOwner);
-        noteDiv.append(noteTitleDiv, noteTimeDiv);
+    clockSvgContainer.innerHTML = clockSvgString;
 
-    return noteDiv;
+    noteTitleDiv.append(noteTitle, noteOwnerDiv);
+    noteTimeDiv.append(clockSvgContainer, noteTime);
+    noteInitialsDiv.append(noteInitials);
+    noteOwnerDiv.append(noteInitialsDiv, noteOwner);
+    noteDiv.append(noteTitleDiv, noteTimeDiv);
+    noteLi.append(noteDiv);
+
+    return noteLi;
+}
+
+function renderNoteDetailView(noteData) {
+    courseContainer.replaceChildren();
+
+    const noteDetailContainer = document.createElement('div');
+
+    const backBtn = document.createElement('button');
+
+    backBtn.addEventListener('click', () => {
+        courseContainer.replaceChildren();
+        renderCourseView(courseId);
+    })
+
+    const noteTitle = document.createElement('h1');
+    const noteContent = document.createElement('p');
+    const noteOwner = document.createElement('p');
+
+    backBtn.textContent = "All notes";
+
+    noteTitle.textContent = noteData.title;
+    noteContent.textContent = noteData.content;
+    noteOwner.textContent = noteData.ownerFirstName + " " + noteData.ownerLastName;
+
+    noteDetailContainer.classList.add('note-detail-container');
+
+    
+    noteDetailContainer.append(backBtn, noteTitle, noteContent, noteOwner);
+    courseContainer.append(noteDetailContainer);
 }
 
 

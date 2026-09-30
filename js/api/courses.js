@@ -1,3 +1,5 @@
+import { handleAuth } from "./auth.js";
+
 export async function fetchCourses() {
     try {
         // 1. send the network request
@@ -5,6 +7,12 @@ export async function fetchCourses() {
             method: 'GET',
             credentials: 'include'
         });
+
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
 
         // 2. check if response status is ok
         if (!response.ok) {
@@ -27,6 +35,12 @@ export async function fetchCourseDetails(courseId) {
             credentials: 'include'
         });
 
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
+
         if (!response.ok) {
             throw new Error(`HTTP Error! Status: ${response.status}`);
         }
@@ -46,6 +60,12 @@ export async function fetchCourseMembers(courseId) {
             credentials: 'include'
         });
 
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
+        
         if (!response.ok) {
             throw new Error(`HTTP Error! Status: ${response.status}`);
         }

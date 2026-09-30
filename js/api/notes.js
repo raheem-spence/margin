@@ -1,3 +1,5 @@
+import { handleAuth } from "./auth.js";
+
 export async function loadDashboardNotes() {
     try {
         // 1. send the network request
@@ -5,6 +7,12 @@ export async function loadDashboardNotes() {
             method: 'GET',
             credentials: 'include'
         });
+
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
 
         // 2. check if response is ok
         if (!response.ok) {
@@ -27,6 +35,12 @@ export async function loadNotes(courseId) {
             method: 'GET',
             credentials: 'include'
         });
+
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
 
         // 2. check if response status is OK
         if (!response.ok) {
@@ -54,6 +68,12 @@ export async function createNote(courseId, noteData) {
             body: JSON.stringify(noteData) // converts JS object into a JSON string
         });
 
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
+
         if(!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -79,6 +99,12 @@ export async function updateNote(courseId, noteData, noteId) {
             body: JSON.stringify(noteData)
         });
 
+        const result = handleAuth(response);
+
+        if (!result) {
+            return;
+        }
+
         if(response.status === 403) {
             return false;
         }
@@ -92,8 +118,4 @@ export async function updateNote(courseId, noteData, noteId) {
     } catch (error) {
         console.log('Error:', error)
     }
-}
-
-export async function recentNotes() {
-    
 }
