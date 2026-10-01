@@ -31,6 +31,12 @@
     box-sizing: border-box;
 }
 
+main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
 html{
     font-family: Figtree, sans-serif;
     font-size: 16px;
@@ -102,6 +108,11 @@ aside{
     text-align: center;
     padding: 1px;
     margin-right: 0.5rem;
+}
+
+#course-container {
+    flex: 1;
+    min-height: 0;
 }
 
 .sidebar-label {
@@ -1327,5 +1338,158 @@ aside{
 }
 
 .note-detail-container {
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: column;
     padding: 40px 48px;
+    height: 100%;
+}
+
+.back-btn {
+    display: flex;
+    justify-content: center;
+    gap: 0.375rem;
+    align-items: center;
+    color: var(--muted-foreground);
+    font-family: Figtree, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    margin-bottom: 2px;
+    margin-right: auto;
+}
+
+.back-btn:hover {
+    color: #5b21b6;
+}
+
+.note-view-title {
+    font-family: Fraunces, serif;
+    font-weight: 600;
+    font-size: 28px;
+    letter-spacing: -0.025em;
+    color: var(--black-text-clr);
+    line-height: 1.25;
+    margin-bottom: 12px;
+    margin-top: 16px;
+}
+
+.note-meta-data-div {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 0.625rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+}
+
+.initials-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 1.75rem;
+    width: 1.75rem;
+    border-radius: 50%;
+    background-color: rgb(132, 120, 166);
+    color: #ffffff;
+}
+
+.initials-span {
+    font-family: Figtree, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.note-view-owner {
+    font-family: Figtree, sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--black-text-clr)
+}
+
+.note-view-date {
+    font-family: Figtree, sans-serif;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    margin-left: 8px;
+}
+
+.note-owner-date-div {
+    display: flex;
+}
+
+.all-btns-div {
+    display: flex;
+    justify-content: space-between;
+}
+
+.action-buttons-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.note-view-edit-btn, .note-view-del-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--black-text-clr);
+    font-family: Figtree, sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    border-radius: 0.75rem;
+    background-color: #ebebea;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    gap: 0.375rem;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.note-view-edit-btn:hover {
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
+.note-view-del-btn:hover {
+    color: rgb(220, 38, 38);
+    border-color: rgba(239, 68, 68, 0.25);
+    background-color: rgba(239, 68, 68, 0.06);
+}
+
+.clicked {
+    color: rgb(220, 38, 38);
+    border-color: rgba(239, 68, 68, 0.25);
+    background-color: rgba(239, 68, 68, 0.06);
+}
+
+.yes-btn {
+    color: #ffffff;
+    font-family: Figtree, sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    background-color: rgb(220, 38, 38);
+    border-radius: 0.5rem;
+    border: 0px solid var(--border);
+    padding: 2px 8px;
+    cursor: pointer;
+}
+
+.no-btn {
+    color: rgb(220, 38, 38);
+    padding: 2px 6px;
+    border-radius: 0.5rem;
+    border: none;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+
+.no-btn:hover {
+    background-color: rgba(239, 68, 68, 0.2);
 }

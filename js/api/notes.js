@@ -105,7 +105,7 @@ export async function updateNote(courseId, noteData, noteId) {
             return;
         }
 
-        if(response.status === 403) {
+        if (response.status === 403) {
             return false;
         }
 
@@ -117,5 +117,34 @@ export async function updateNote(courseId, noteData, noteId) {
 
     } catch (error) {
         console.log('Error:', error)
+    }
+}
+
+export async function deleteNote(courseId, noteId) {
+    try {
+        const response = await fetch(`http://127.0.0.1:8080/courses/${courseId}/notes/${noteId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        const result = handleAuth(response);
+
+        if (!result) {
+            return false;
+        }
+
+        if (response.status === 403) {
+            return false;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Http error! Status: ${response.status}`);
+        }
+
+        return true;
+
+    } catch (error) {
+        console.error('Error:', error);
+        return false;
     }
 }

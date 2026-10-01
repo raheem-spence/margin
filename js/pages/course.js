@@ -1,8 +1,8 @@
 // imports
 import { fetchCourses, fetchCourseDetails, fetchCourseMembers } from "../api/courses.js";
 import { fetchCurrentUser } from "../api/users.js";
-import { loadNotes, createNote } from "../api/notes.js"
-import { formatRelativeTime, delay, formatJoinedDate } from "../utilities.js";
+import { loadNotes, createNote, deleteNote } from "../api/notes.js"
+import { formatRelativeTime, delay, formatDate } from "../utilities.js";
 
 // constanst / URL params / DOM elements
 const baseCourseUrl = 'http://127.0.0.1:5500/html/course.html'
@@ -54,7 +54,6 @@ async function renderCourseView(courseId) {
 
     // get course notes
     const courseNotes = await loadNotes(courseId);
-    console.log(courseNotes);
 
     // get current user
     const currentUser = await fetchCurrentUser();
@@ -230,6 +229,7 @@ function renderCourseNotes(courseNotes, courseDetails) {
     function insertNewNote(newNoteData) {
         const newNote = addNote(newNoteData);
         noteList.prepend(newNote);
+        courseNotes.push(newNoteData);
         const newNoteTotal = Number(notesTotal.textContent) + 1;
         notesTotal.textContent = String(newNoteTotal);
     }
@@ -398,7 +398,11 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
         resetCreateNoteModal(titleError, contentError, createNoteModal, modalNoteTitleInput, modalNoteContent, modalShareBtn, modalShareBtnTxt, shareArrowSvgContainer, shareArrowString);
         if (isNoteSuccessful) {
             showToast("Note shared with class");
+            modalShareBtn.classList.remove('success');
         }
+
+        console.log("modal closed");
+        console.log(isNoteSuccessful);
 
         titleHasError = false;
         contentHasError = false;
@@ -470,7 +474,6 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
             return;
         }
         
-
         modalShareBtnTxt.textContent = "Sharing...";
         shareArrowSvgContainer.innerHTML = "";
 
@@ -479,7 +482,6 @@ function renderCreateNoteModal(courseDetails, insertNewNote) {
             createNote(courseId, noteData),
             delay(800)
         ]);
-        
         
         if (result[0]) {
             const newNoteData = result[0];
@@ -519,7 +521,7 @@ function resetCreateNoteModal(titleError, contentError, createNoteModal, modalNo
     titleError.classList.add('hidden');
     contentError.classList.add('hidden');
 
-    modalShareBtn.classList.remove('success');
+ 
     modalShareBtnTxt.textContent = "Share with class";
     shareArrowSvgContainer.innerHTML = shareArrowString;
     createNoteModal.classList.remove('closing');
@@ -589,7 +591,7 @@ function renderMembersModal(courseMembers, currentUser) {
         memberNameDiv.classList.add('member-name-div');
 
         memberName.textContent = member.firstName + " " + member.lastName;
-        joinedDate.textContent = `Joined ${formatJoinedDate(member.joinedAt)}`;
+        joinedDate.textContent = `Joined ${formatDate(member.joinedAt)}`;
 
         memberInitials.append(memberInitialsSpan);
         memberInfo.append(memberNameDiv, joinedDate);
@@ -734,7 +736,16 @@ function renderNoteDetailView(noteData) {
 
     const noteDetailContainer = document.createElement('div');
 
+    const allBtnsDiv = document.createElement('div');
+
     const backBtn = document.createElement('button');
+    const backArrowSvgContainer = document.createElement('div');
+    const backArrowString = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5M12 5l-7 7 7 7" data-fg-eeut183="10.10:270.389:/src/app/components/CoursePage.tsx:525:11:28779:35:e:path">
+                            </path></svg>`;
+    
+    backArrowSvgContainer.innerHTML = backArrowString;
 
     backBtn.addEventListener('click', () => {
         courseContainer.replaceChildren();
@@ -743,21 +754,147 @@ function renderNoteDetailView(noteData) {
 
     const noteTitle = document.createElement('h1');
     const noteContent = document.createElement('p');
+
+    const noteMetaDataDiv = document.createElement('div');
+    const date = document.createElement('p');
+    const initialsDiv = document.createElement('div');
+    const initalsSpan = document.createElement('span');
+
+    const noteOwnerDateDiv = document.createElement('div');
     const noteOwner = document.createElement('p');
+
+    const actionButtonsDiv = document.createElement('div');
+    const editSvgContainer = document.createElement('div');
+    const editBtn = document.createElement('button');
+    const editIconString = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" 
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" 
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" 
+                            style="color: var(--muted-foreground);"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+                            </path><path d="m15 5 4 4"></path></svg>`;
+    editSvgContainer.innerHTML = editIconString;
+
+    const delSvgContainer = document.createElement('div');
+    const delIconString = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" 
+                            fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" 
+                            class="lucide lucide-trash2 lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6">
+                            </path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line>
+                            </svg>`;
+    delSvgContainer.innerHTML = delIconString;
+    const deleteBtn = document.createElement('button');
+    const deleteLabel = document.createElement('p');
+    const deleteConfirmLabel = document.createElement('p');
+    deleteLabel.textContent = "Delete";
+    deleteConfirmLabel.textContent = "Delete?";
+    
+    const yesBtn = document.createElement('button');
+    const noBtn = document.createElement('button');
+
+    yesBtn.textContent = "Yes";
+    noBtn.textContent = "No";
+
+    yesBtn.classList.add('yes-btn');
+    noBtn.classList.add('no-btn');
+
+    yesBtn.style.display = 'none';
+    noBtn.style.display = 'none';
+    deleteConfirmLabel.style.display = 'none';
+
+
+    editBtn.addEventListener('click', () => {
+
+    })
+
+    deleteBtn.addEventListener('click', (event) => {
+       
+        deleteBtn.classList.add('clicked');
+
+        delSvgContainer.style.display = 'none';
+        yesBtn.style.display = '';
+        noBtn.style.display = '';
+        deleteLabel.style.display = 'none';
+        deleteConfirmLabel.style.display = '';
+
+    })
+
+    yesBtn.addEventListener('click', async (event) => {
+        // stop the event from bubbling up to the parent button
+        event.stopPropagation();
+
+        // delete note
+        const deleted = await deleteNote(courseId, noteData.id);
+        if (deleted) {
+            resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+        }
+
+    })
+
+    noBtn.addEventListener('click', (event) => {
+        // stop the event from bubbling up to the parent button
+        event.stopPropagation();
+        resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+    })
+
+    document.addEventListener('click', (event) => {
+        const isClickInside = deleteBtn.contains(event.target);
+
+        if (!isClickInside) {
+           resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+        }
+    })
+
+
+    editBtn.textContent = "Edit";
 
     backBtn.textContent = "All notes";
 
+    initalsSpan.textContent = noteData.ownerFirstName[0].toUpperCase() + noteData.ownerLastName[0].toUpperCase();
     noteTitle.textContent = noteData.title;
     noteContent.textContent = noteData.content;
     noteOwner.textContent = noteData.ownerFirstName + " " + noteData.ownerLastName;
 
-    noteDetailContainer.classList.add('note-detail-container');
+    if (noteData.updatedAt != noteData.createdAt) {
+        date.textContent = `Updated ${formatDate(noteData.updatedAt)}`;
+    } else {
+        date.textContent = `Created ${formatDate(noteData.createdAt)}`;
+    }
 
-    
-    noteDetailContainer.append(backBtn, noteTitle, noteContent, noteOwner);
+    actionButtonsDiv.classList.add('action-buttons-div');
+    allBtnsDiv.classList.add('all-btns-div');
+    editBtn.classList.add('note-view-edit-btn');
+    deleteBtn.classList.add('note-view-del-btn');
+    noteDetailContainer.classList.add('note-detail-container');
+    backBtn.classList.add('back-btn');
+    noteTitle.classList.add('note-view-title');
+    noteContent.classList.add('note-view-content');
+    noteMetaDataDiv.classList.add('note-meta-data-div');
+    noteOwner.classList.add('note-view-owner');
+    initialsDiv.classList.add('initials-div');
+    initalsSpan.classList.add('initials-span');
+    date.classList.add('note-view-date');
+    noteOwnerDateDiv.classList.add('note-owner-date-div');
+
+    editBtn.prepend(editSvgContainer);
+    deleteBtn.append(delSvgContainer, deleteLabel, deleteConfirmLabel, yesBtn, noBtn);
+
+    actionButtonsDiv.append(editBtn, deleteBtn);
+    allBtnsDiv.append(backBtn, actionButtonsDiv);
+    noteOwnerDateDiv.append(noteOwner, date);
+    initialsDiv.append(initalsSpan);
+    noteMetaDataDiv.append(initialsDiv, noteOwnerDateDiv);
+    backBtn.prepend(backArrowSvgContainer);
+    noteDetailContainer.append(allBtnsDiv, noteTitle, noteMetaDataDiv, noteContent);
     courseContainer.append(noteDetailContainer);
 }
 
+
+function resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn) {
+    noBtn.style.display = 'none';
+    yesBtn.style.display = 'none';
+    deleteBtn.classList.remove('clicked');
+    deleteLabel.style.display = '';
+    deleteConfirmLabel.style.display = 'none';
+    delSvgContainer.style.display = '';
+}
 
 async function renderBreadCrumb(courses, courseId) {
     const currCourse = document.createElement('p');
