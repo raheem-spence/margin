@@ -10,6 +10,7 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const courseId = Number(urlParams.get('courseId'));
 
+
 const currSiteLocation = document.getElementById('site-location-div');
 
 const courses = await fetchCourses();
@@ -33,13 +34,14 @@ const userInitials = document.getElementById('initials');
 const toast = document.createElement('div');
 const toastTxt = document.createElement('span');
 const checkMarkSvgContainer = document.createElement('div');
-checkMarkSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
-                                viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" 
-                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check preview-icon">
-                                <path d="M20 6 9 17l-5-5"/></svg>`;
+checkMarkSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                                    clip-rule="evenodd"/>
+                                    </svg>`;
 
 toast.classList.add('toast', 'hidden');
-toast.append(toastTxt, checkMarkSvgContainer);
+checkMarkSvgContainer.classList.add('toast-checkmark');
+toast.append(checkMarkSvgContainer, toastTxt);
 document.body.appendChild(toast);
 
 
@@ -227,19 +229,40 @@ function renderCourseNotes(courseNotes, courseDetails) {
     const noteList = document.createElement('ul');
 
     function insertNewNote(newNoteData) {
-        const newNote = addNote(newNoteData);
-        noteList.prepend(newNote);
-        courseNotes.push(newNoteData);
-        const newNoteTotal = Number(notesTotal.textContent) + 1;
-        notesTotal.textContent = String(newNoteTotal);
+        courseNotes.unshift(newNoteData);
+        renderFilteredNotes(searchBar.value, courseNotes, noteList, notesTotal, noteSectionTitle);
     }
 
-    for (const note of courseNotes) {
-        const noteElement = addNote(note);
-        noteList.append(noteElement);
+    if (courseNotes.length === 0) {
+        const emptySearchNotesDiv = document.createElement('div');
+        const noteSvgContainer = document.createElement('div');
+        const mainMsg = document.createElement('p');
+        const secondMsg = document.createElement('p');
+        
+        emptySearchNotesDiv.classList.add('empty-search-notes');
+        mainMsg.classList.add('main-msg-empty-notes');
+        secondMsg.classList.add('second-msg-empty-notes');
+        noteSvgContainer.classList.add('empty-note-svg');
+        
+        noteSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" 
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" 
+                                    stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text" 
+                                    style="color: var(--primary);"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z">
+                                    </path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
+                                    </svg>`;
+        mainMsg.textContent = "No notes yet";
+        secondMsg.textContent = "Be the first to share a note with your classmates."
+        
+        emptySearchNotesDiv.append(noteSvgContainer, mainMsg, secondMsg)
+        noteList.append(emptySearchNotesDiv);
+    } else {
+        for (const note of courseNotes) {
+            const noteElement = addNote(note);
+            noteList.append(noteElement);
+        }
     }
 
-    searchNotes(courseNotes, searchBar, noteList, notesTotal);
+    searchNotes(courseNotes, searchBar, noteList, notesTotal, noteSectionTitle);
 
     noteList.addEventListener('click', (event) => {
         // find the closest li
@@ -247,10 +270,15 @@ function renderCourseNotes(courseNotes, courseDetails) {
 
         if (closestLi && noteList.contains(closestLi)) {
 
-            for (const note of courseNotes) {
-                if (note.id === parseInt(closestLi.dataset.id)) {
-                    renderNoteDetailView(note);
-                }
+            const clickedNoteId = parseInt(closestLi.dataset.id);
+            const note = courseNotes.find(note => note.id === clickedNoteId);
+
+            if (note) {
+                urlParams.set('noteId', note.id);
+                const newQueryString = urlParams.toString();
+                const newUrl = baseCourseUrl + '?' + newQueryString;
+                history.pushState(null, '', newUrl);
+                renderNoteDetailView(note);
             }
         }
     })
@@ -624,61 +652,20 @@ function renderMembersModal(courseMembers, currentUser) {
     return membersModal;
 }
 
-function searchNotes(courseNotes, searchBar, noteList, notesTotal) {
+function searchNotes(courseNotes, searchBar, noteList, notesTotal, noteSectionTitle) {
     searchBar.addEventListener('input', (event) => {
         const searchString = event.target.value.toLowerCase();
 
-        const filteredNotes = courseNotes.filter((note) => {
-            // check if title matches search string
-            return (
-                note.title.toLowerCase().includes(searchString)
-            );
-        });
+        renderFilteredNotes(searchString, courseNotes, noteList, notesTotal, noteSectionTitle);
 
-        noteList.replaceChildren();
-
-        if (filteredNotes.length === 0) {
-            const emptySearchNotesDiv = document.createElement('div');
-            const noteSvgContainer = document.createElement('div');
-            const mainMsg = document.createElement('p');
-            const secondMsg = document.createElement('p');
-            
-            emptySearchNotesDiv.classList.add('empty-search-notes');
-            mainMsg.classList.add('main-msg-empty-notes');
-            secondMsg.classList.add('second-msg-empty-notes');
-            noteSvgContainer.classList.add('empty-note-svg');
-            
-            noteSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" 
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" 
-                                        stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text" 
-                                        style="color: var(--primary);"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z">
-                                        </path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
-                                        </svg>`;
-            mainMsg.textContent = "No notes match your search";
-            secondMsg.textContent = "Try a different search or clear your search to see all notes."
-            
-            emptySearchNotesDiv.append(noteSvgContainer, mainMsg, secondMsg)
-            noteList.append(emptySearchNotesDiv);
-        } else {
-
-            filteredNotes.forEach(note => {
-                const noteElement = addNote(note);
-
-                noteList.append(noteElement);
-            })
-        }
-
-
-        notesTotal.textContent = filteredNotes.length;
-    });
+    })
 }
-
 
 async function showToast(textContent) {
     toastTxt.textContent = textContent;
     await delay(300);
     toast.classList.remove('hidden');
-    await delay(2000);
+    await delay(3000);
     toast.classList.add('hidden');
 }
 
@@ -748,8 +735,12 @@ function renderNoteDetailView(noteData) {
     backArrowSvgContainer.innerHTML = backArrowString;
 
     backBtn.addEventListener('click', () => {
-        courseContainer.replaceChildren();
-        renderCourseView(courseId);
+        urlParams.delete('noteId');
+        const newQstring = urlParams.toString();
+        const newUrl = baseCourseUrl + '?' + newQstring;
+        history.pushState(null, '', newUrl);
+
+        renderRoute(courseId);
     })
 
     const noteTitle = document.createElement('h1');
@@ -780,7 +771,7 @@ function renderNoteDetailView(noteData) {
                             </path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line>
                             </svg>`;
     delSvgContainer.innerHTML = delIconString;
-    const deleteBtn = document.createElement('button');
+    const deleteDiv = document.createElement('div');
     const deleteLabel = document.createElement('p');
     const deleteConfirmLabel = document.createElement('p');
     deleteLabel.textContent = "Delete";
@@ -804,9 +795,9 @@ function renderNoteDetailView(noteData) {
 
     })
 
-    deleteBtn.addEventListener('click', (event) => {
+    deleteDiv.addEventListener('click', (event) => {
        
-        deleteBtn.classList.add('clicked');
+        deleteDiv.classList.add('clicked');
 
         delSvgContainer.style.display = 'none';
         yesBtn.style.display = '';
@@ -817,28 +808,37 @@ function renderNoteDetailView(noteData) {
     })
 
     yesBtn.addEventListener('click', async (event) => {
-        // stop the event from bubbling up to the parent button
+        // stop the event from bubbling up to the parent
         event.stopPropagation();
 
         // delete note
         const deleted = await deleteNote(courseId, noteData.id);
         if (deleted) {
-            resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+            resetDeleteBtn(deleteDiv, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+            
+            const currUrlParams = new URLSearchParams(window.location.search);
+            currUrlParams.delete('noteId');
+
+            const currUrl = baseCourseUrl + '?' + currUrlParams.toString();
+            history.replaceState(null, '', currUrl);
+
+            renderRoute(courseId);
+            showToast("Note deleted");
         }
 
     })
 
     noBtn.addEventListener('click', (event) => {
-        // stop the event from bubbling up to the parent button
+        // stop the event from bubbling up to the parent
         event.stopPropagation();
-        resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+        resetDeleteBtn(deleteDiv, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
     })
 
     document.addEventListener('click', (event) => {
-        const isClickInside = deleteBtn.contains(event.target);
+        const isClickInside = deleteDiv.contains(event.target);
 
         if (!isClickInside) {
-           resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
+           resetDeleteBtn(deleteDiv, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn);
         }
     })
 
@@ -861,7 +861,7 @@ function renderNoteDetailView(noteData) {
     actionButtonsDiv.classList.add('action-buttons-div');
     allBtnsDiv.classList.add('all-btns-div');
     editBtn.classList.add('note-view-edit-btn');
-    deleteBtn.classList.add('note-view-del-btn');
+    deleteDiv.classList.add('note-view-del-btn');
     noteDetailContainer.classList.add('note-detail-container');
     backBtn.classList.add('back-btn');
     noteTitle.classList.add('note-view-title');
@@ -874,9 +874,9 @@ function renderNoteDetailView(noteData) {
     noteOwnerDateDiv.classList.add('note-owner-date-div');
 
     editBtn.prepend(editSvgContainer);
-    deleteBtn.append(delSvgContainer, deleteLabel, deleteConfirmLabel, yesBtn, noBtn);
+    deleteDiv.append(delSvgContainer, deleteLabel, deleteConfirmLabel, yesBtn, noBtn);
 
-    actionButtonsDiv.append(editBtn, deleteBtn);
+    actionButtonsDiv.append(editBtn, deleteDiv);
     allBtnsDiv.append(backBtn, actionButtonsDiv);
     noteOwnerDateDiv.append(noteOwner, date);
     initialsDiv.append(initalsSpan);
@@ -887,10 +887,10 @@ function renderNoteDetailView(noteData) {
 }
 
 
-function resetDeleteBtn(deleteBtn, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn) {
+function resetDeleteBtn(deleteDiv, deleteLabel, deleteConfirmLabel, delSvgContainer, yesBtn, noBtn) {
     noBtn.style.display = 'none';
     yesBtn.style.display = 'none';
-    deleteBtn.classList.remove('clicked');
+    deleteDiv.classList.remove('clicked');
     deleteLabel.style.display = '';
     deleteConfirmLabel.style.display = 'none';
     delSvgContainer.style.display = '';
@@ -954,6 +954,70 @@ function renderSideBarCourses(courses) {
     }
 }
 
+function renderFilteredNotes(searchString, courseNotes, noteList,  notesTotal, noteSectionTitle) {
+    noteList.replaceChildren();
+
+    const filteredNotes = courseNotes.filter((note) => {
+        return note.title.toLowerCase().includes(searchString);
+    })
+
+    if (courseNotes.length === 0) {
+        // no notes yet
+        const emptyState = createNotesEmptyState(
+            "No notes yet",
+            "Be the first to share a note with your classmates"
+        );
+        noteList.append(emptyState);
+    }else if (filteredNotes.length === 0) {
+        // no notes match search
+        const emptyState = createNotesEmptyState(
+            "No notes match your search",
+            "Try a different search or clear your search to see all notes."
+        );
+
+        noteList.append(emptyState);
+    } else {
+        // render searched notes
+
+        filteredNotes.forEach(note => {
+            const noteElement = addNote(note);
+
+            noteList.append(noteElement);
+        })
+    }
+
+    if (searchString === "") {
+        noteSectionTitle.textContent = "All notes";
+    } else {
+        noteSectionTitle.textContent = "Results";
+    }
+    notesTotal.textContent = filteredNotes.length;
+}
+
+function createNotesEmptyState(mainMessage, secondaryMessage) {
+    const emptySearchNotesDiv = document.createElement('div');
+    const noteSvgContainer = document.createElement('div');
+    const mainMsg = document.createElement('p');
+    const secondaryMsg = document.createElement('p');
+    
+    emptySearchNotesDiv.classList.add('empty-search-notes');
+    mainMsg.classList.add('main-msg-empty-notes');
+    secondaryMsg.classList.add('second-msg-empty-notes');
+    noteSvgContainer.classList.add('empty-note-svg');
+    
+    noteSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" 
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" 
+                                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text" 
+                                style="color: var(--primary);"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z">
+                                </path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path>
+                                </svg>`;
+    mainMsg.textContent = mainMessage;
+    secondaryMsg.textContent = secondaryMessage;
+    
+    emptySearchNotesDiv.append(noteSvgContainer, mainMsg, secondaryMsg)
+    return emptySearchNotesDiv;
+}
+
 async function renderUser() {
 
     const user = await fetchCurrentUser();
@@ -973,7 +1037,26 @@ async function renderUser() {
 
     userIconName.textContent = user.firstName + " " + user.lastName[0] + ".";
     userInitials.textContent = user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase();
- 
+
+}
+
+async function renderRoute(courseId) {
+    // read current URL
+    const currUrlParams = new URLSearchParams(window.location.search);
+    const currNoteId = currUrlParams.get('noteId');
+    let currNote = null;
+
+    if (currNoteId !== null) {
+        const notes = await loadNotes(courseId);
+        currNote = notes.find(note => note.id === Number(currNoteId));
+    }
+
+    if (currNote) {
+        renderNoteDetailView(currNote);
+    } else {
+        courseContainer.replaceChildren();
+        renderCourseView(courseId)
+    }
 }
 
 
@@ -1011,9 +1094,13 @@ sidebarDropdownBtn.addEventListener('click', e => {
     sidebarArrow.classList.toggle('rotate');
 })
 
+window.addEventListener('popstate', () => {
+   renderRoute(courseId);
+})
+
 
 // initial page setup / function calls
 // renderBreadCrumb(courses, courseId);
 renderSideBarCourses(courses);
-renderCourseView(courseId);
+renderRoute(courseId);
 renderUser();
