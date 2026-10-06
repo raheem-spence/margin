@@ -56,6 +56,7 @@ async function renderCourseView(courseId) {
 
     // get course notes
     const courseNotes = await loadNotes(courseId);
+    console.log(courseNotes);
 
     // get current user
     const currentUser = await fetchCurrentUser();
@@ -792,7 +793,34 @@ function renderNoteDetailView(noteData) {
 
 
     editBtn.addEventListener('click', () => {
+        noteDetailContainer.replaceChildren();
 
+        const topLvlDiv = document.createElement('div');
+
+        const editingNoteDiv = document.createElement('div');
+        const editIconSvgContainer = document.createElement('div');
+        const editTxtSpan = document.createElement('span');
+
+        editTxtSpan.textContent = "Editing note";
+        editIconSvgContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" 
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                                        stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" 
+                                        style="color: var(--primary);"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z">
+                                        </path><path d="m15 5 4 4"></path></svg>`;
+
+        const btnOptionsDiv = document.createElement('div');
+        const cancelBtn = document.createElement('button');
+        const saveChangesBtn = document.createElement('button');
+
+        cancelBtn.textContent = "Cancel";
+        saveChangesBtn.textContent = "Save Changes";
+
+        editingNoteDiv.append(editIconSvgContainer, editTxtSpan);
+        btnOptionsDiv.append(cancelBtn, saveChangesBtn);
+
+        topLvlDiv.append(editingNoteDiv, btnOptionsDiv);
+
+        noteDetailContainer.append(topLvlDiv);
     })
 
     deleteDiv.addEventListener('click', (event) => {

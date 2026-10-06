@@ -1385,6 +1385,14 @@ aside{
     margin-top: 16px;
 }
 
+.note-view-content {
+    color: var(--black-text-clr);
+    font-family: Figtree, sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
 .note-meta-data-div {
     display: flex;
     justify-content: start;
