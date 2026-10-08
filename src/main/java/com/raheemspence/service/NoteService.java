@@ -140,7 +140,9 @@ public class NoteService {
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found"));
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResponseStatusException(
