@@ -14,17 +14,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +47,7 @@ class NoteServiceTest {
     @InjectMocks
     private NoteService noteService;
 
+    // ==================== createNote ====================
     @Test
     void createNoteValidRequestReturnsNoteResponse() {
         // 1. Arrange
@@ -176,5 +179,331 @@ class NoteServiceTest {
 
         // 3. Assert
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    // ==================== deleteNote ====================
+    @Test
+    // happy path
+    void deleteNoteValidOwnerDeletesNote() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        User user = new User();
+        user.setId(userId);
+
+        Course course = new Course();
+        course.setId(courseId);
+
+        Note note = new Note();
+        note.setId(noteId);
+        note.setCourse(course);
+        note.setOwner(user);
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(note));
+
+        // 2. Act
+        noteService.deleteNote(userId, noteId, courseId);
+
+        // 3. Assert
+        verify(noteRepository).delete(note);
+    }
+
+
+    // user not a course member -- 403 FORBIDDEN
+    @Test
+    void deleteNoteUserNotCourseMemberThrowsForbidden() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(false);
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.deleteNote(userId, noteId, courseId);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    // note doesnt exist -- 404 NOT FOUND
+    @Test
+    void deleteNoteNoteDoesNotExistThrowsNotFound() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.empty());
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.deleteNote(userId, noteId, courseId);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    // user is not note owner -- 403 FORBIDDEN
+    @Test
+    void deleteNoteUserNotNoteOwnerThrowsForbidden() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        User noteOwner = new User();
+        noteOwner.setId(2L);
+
+        Course course = new Course();
+        course.setId(courseId);
+
+        Note note = new Note();
+        note.setId(noteId);
+        note.setOwner(noteOwner);
+        note.setCourse(course);
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(note));
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.deleteNote(userId, noteId, courseId);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    // ==================== updateNote ====================
+    @Test
+    // happy path
+    void updateNoteValidRequestReturnsNoteResponse() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        User user = new User();
+        user.setId(userId);
+        user.setFirstName("Jojo");
+        user.setLastName("Bizarro");
+
+        Course course = new Course();
+        course.setId(courseId);
+        course.setName("Anime");
+
+        Note note = new Note();
+        note.setTitle("Anime characters");
+        note.setContent("Who are the best?");
+        note.setId(noteId);
+        note.setCourse(course);
+        note.setOwner(user);
+        note.setCreatedAt(Instant.now());
+
+        NoteRequest noteRequest = new NoteRequest();
+        noteRequest.setTitle("Anime side characters");
+        noteRequest.setContent("Who are the best side characters?");
+
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(note));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(noteRepository.save(any(Note.class))).thenReturn(note);
+
+        // 2. Act
+        NoteResponse noteResponse = noteService.updateNote(userId, noteId, courseId, noteRequest);
+
+        // 3. Assert
+        assertNotNull(noteResponse);
+        assertEquals(noteRequest.getTitle(), noteResponse.getTitle());
+        assertEquals(noteRequest.getContent(), noteResponse.getContent());
+        assertEquals(userId, noteResponse.getOwnerId());
+        assertEquals(courseId, noteResponse.getCourseId());
+        assertEquals(course.getName(), noteResponse.getCourseName());
+        assertEquals(note.getCreatedAt(), noteResponse.getCreatedAt());
+        assertNotNull(noteResponse.getUpdatedAt());
+    }
+
+    // user not a member of course -- 403 FORBIDDEN
+    @Test
+    void updateNoteUserNotCourseMemberThrowsForbidden() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        NoteRequest noteRequest = new NoteRequest();
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(false);
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.updateNote(userId, noteId, courseId, noteRequest);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    // note doesnt exist -- 404 NOT FOUND
+    @Test
+    void updateNoteNoteDoesNotExistThrowsNotFound() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        NoteRequest noteRequest = new NoteRequest();
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.empty());
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.updateNote(userId, noteId, courseId, noteRequest);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    // user is not note owner thus cannot update note -- 403 FORBIDDEN
+    @Test
+    void updateNoteUserNotNoteOwnerThrowsForbidden() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        User noteOwner = new User();
+        noteOwner.setId(2L);
+
+        Note note = new Note();
+        note.setOwner(noteOwner);
+        note.setId(noteId);
+
+
+        NoteRequest noteRequest = new NoteRequest();
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(note));
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.updateNote(userId, noteId, courseId, noteRequest);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+    }
+
+    // course doesnt exist -- 404 NOT FOUND
+    @Test
+    void updateNoteCourseDoesNotExistThrowsNotFound() {
+        // 1. Arrange
+        Long userId = 1L;
+        Long noteId = 1L;
+        Long courseId = 1L;
+
+        User user = new User();
+        user.setId(userId);
+
+        Note note = new Note();
+        note.setId(noteId);
+        note.setOwner(user);
+
+        NoteRequest noteRequest = new NoteRequest();
+
+        when(courseMembershipRepository.existsByUserIdAndCourseId(userId, courseId)).thenReturn(true);
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(note));
+        when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+        // 2. Act
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> {
+                    noteService.updateNote(userId, noteId, courseId, noteRequest);
+                });
+
+        // 3. Assert
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    // ==================== getRecentNotes ====================
+    // happy path
+    @Test
+    void getRecentNotesValidRequestReturnsNotesList() {
+        // 1. Arrange
+        Long userId = 1L;
+
+        User user = new User();
+        user.setFirstName("Naruto");
+        user.setLastName("Uzumaki");
+        user.setId(userId);
+
+        Course course = new Course();
+        course.setName("Anime");
+        course.setId(1L);
+
+        Note note1 = new Note();
+        note1.setId(1L);
+        note1.setOwner(user);
+        note1.setTitle("Sharingan");
+        note1.setContent("Sasuke");
+        note1.setCreatedAt(Instant.now());
+        note1.setUpdatedAt(Instant.now());
+        note1.setCourse(course);
+
+        Note note2 = new Note();
+        note2.setId(2L);
+        note2.setOwner(user);
+        note2.setTitle("bakugan");
+        note2.setContent("Sakura");
+        note2.setCreatedAt(Instant.now());
+        note2.setUpdatedAt(Instant.now());
+        note2.setCourse(course);
+
+        List<Note> noteList = List.of(note1, note2);
+
+        when(noteRepository.findAccessibleNotesByUserId(eq(userId), any(Pageable.class))).thenReturn(noteList);
+
+        // 2. Act
+        List<NoteResponse> recentNotesResponse = noteService.getRecentNotes(userId);
+
+        // 3. Assert
+        assertNotNull(recentNotesResponse);
+        assertEquals(noteList.size(), recentNotesResponse.size());
+        assertEquals(noteList.getFirst().getTitle(), recentNotesResponse.getFirst().getTitle());
+        assertEquals(noteList.getFirst().getContent(), recentNotesResponse.getFirst().getContent());
+        assertEquals(noteList.getFirst().getOwner().getId(), recentNotesResponse.getFirst().getOwnerId());
+        assertEquals(noteList.getFirst().getCourse().getId(), recentNotesResponse.getFirst().getCourseId());
+        assertEquals(noteList.getFirst().getCourse().getName(), recentNotesResponse.getFirst().getCourseName());
+        assertEquals(noteList.getFirst().getOwner().getFirstName(), recentNotesResponse.getFirst().getOwnerFirstName());
+        assertEquals(noteList.getFirst().getOwner().getLastName(), recentNotesResponse.getFirst().getOwnerLastName());
+        assertEquals(noteList.getFirst().getCreatedAt(), recentNotesResponse.getFirst().getCreatedAt());
+        assertEquals(noteList.getFirst().getUpdatedAt(), recentNotesResponse.getFirst().getUpdatedAt());
+        assertEquals(noteList.get(1).getTitle(), recentNotesResponse.get(1).getTitle());
+        assertEquals(noteList.get(1).getContent(), recentNotesResponse.get(1).getContent());
+        assertEquals(noteList.get(1).getOwner().getId(), recentNotesResponse.get(1).getOwnerId());
+        assertEquals(noteList.get(1).getCourse().getId(), recentNotesResponse.get(1).getCourseId());
+        assertEquals(noteList.get(1).getCourse().getName(), recentNotesResponse.get(1).getCourseName());
+        assertEquals(noteList.get(1).getOwner().getFirstName(), recentNotesResponse.get(1).getOwnerFirstName());
+        assertEquals(noteList.get(1).getOwner().getLastName(), recentNotesResponse.get(1).getOwnerLastName());
+        assertEquals(noteList.get(1).getCreatedAt(), recentNotesResponse.get(1).getCreatedAt());
+        assertEquals(noteList.get(1).getUpdatedAt(), recentNotesResponse.get(1).getUpdatedAt());
+
     }
 }
